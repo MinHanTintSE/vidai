@@ -193,28 +193,15 @@ export default function App() {
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem("fal_api_key") || "");
-  const [showApiPanel, setShowApiPanel] = useState(false);
+  //const [apiKey, setApiKey] = useState(() => localStorage.getItem("fal_api_key") || "");
+  //const [showApiPanel, setShowApiPanel] = useState(false);
   const [navSection, setNavSection] = useState("studio");
   const [imageFile, setImageFile] = useState(null);
   const [enhancedPrompt, setEnhancedPrompt] = useState("");
   const [enhancing, setEnhancing] = useState(false);
-  const [keyStatus, setKeyStatus] = useState(null); // null | "testing" | "valid" | "invalid"
-
-  const testApiKey = async () => {
-    if (!apiKey.trim()) return;
-    setKeyStatus("testing");
-    try {
-      // Check a fake request ID — 401/403 = bad key, 404 = key valid (auth passed)
-      const res = await fetch(
-        "https://queue.fal.run/fal-ai/seedance-v2/requests/test-key-check/status",
-        { headers: { "Authorization": `Key ${apiKey}` } }
-      );
-      setKeyStatus(res.status === 401 || res.status === 403 ? "invalid" : "valid");
-    } catch {
-      setKeyStatus("invalid");
-    }
-  };
+  // -- API key UI hidden for live version --
+  // const [keyStatus, setKeyStatus] = useState(null);
+  // const testApiKey = async () => { ... };
   const fileRef = useRef();
   const progressRef = useRef();
 
@@ -250,7 +237,7 @@ export default function App() {
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
-    if (!apiKey.trim()) { setShowApiPanel(true); return; }
+    // if (!apiKey.trim()) { setShowApiPanel(true); return; } // hidden for live version
     setGenerating(true);
     setProgress(0);
     setResult(null);
@@ -270,68 +257,69 @@ export default function App() {
         duration: duration,
         ...(audio && model.audio ? { generate_audio: true } : {}),
       };
-      const submitRes = await fetch(`https://queue.fal.run/${model.endpoint}`, {
+
+      const submitRes = await fetch("/api/generate", {
         method: "POST",
-        headers: {
-          "Authorization": `Key ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ endpoint: model.endpoint, payload }),
       });
+
       const submitData = await submitRes.json();
-      console.log("fal.ai submit status:", submitRes.status);
-      console.log("fal.ai submit response:", submitData);
+      const statusUrl = submitData.status_url;
+      const responseUrl = submitData.response_url;
 
-      if (!submitRes.ok) {
-        console.error("fal.ai submit error:", submitData);
-        throw new Error(submitData?.detail || submitData?.message || submitData?.error || `HTTP ${submitRes.status}`);
-      }
-
-      const requestId = submitData.request_id;
-      if (!requestId) {
-        console.error("fal.ai response missing request_id:", submitData);
-        throw new Error("No request_id in response — check API key and endpoint");
+      if (!statusUrl) {
+        setErrorMsg(submitData?.detail || submitData?.error || "Submit failed — no status URL returned");
+        setResult("error");
+        return;
       }
 
       let done = false;
-      while (!done) {
-        await new Promise(r => setTimeout(r, 3000));
-        const statusRes = await fetch(`https://queue.fal.run/${model.endpoint}/requests/${requestId}/status`, {
-          headers: { "Authorization": `Key ${apiKey}` },
+      let attempts = 0;
+
+      while (!done && attempts < 60) {
+        await new Promise(r => setTimeout(r, 4000));
+        attempts++;
+
+        const statusRes = await fetch("/api/status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ statusUrl }),
         });
         const statusData = await statusRes.json();
-        console.log("fal.ai status:", statusData.status, statusData);
+
         if (statusData.status === "COMPLETED") {
-          const resultRes = await fetch(`https://queue.fal.run/${model.endpoint}/requests/${requestId}`, {
-            headers: { "Authorization": `Key ${apiKey}` },
+          const resultRes = await fetch("/api/result", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ responseUrl }),
           });
           const resultData = await resultRes.json();
-          console.log("fal.ai result:", resultData);
-          // fal.ai returns video URL under different keys depending on the model
           const videoUrl =
             resultData.video?.url ||
             resultData.video_url ||
-            resultData.videos?.[0]?.url ||
-            resultData.output?.video_url ||
+            resultData.output?.video?.url ||
             null;
-          setResult(videoUrl);
+          setResult(videoUrl || "error");
           done = true;
         } else if (statusData.status === "FAILED") {
-          const reason = statusData.error || statusData.detail || JSON.stringify(statusData.logs?.slice(-1)?.[0] || "Unknown reason");
-          console.error("fal.ai generation FAILED:", statusData);
-          setErrorMsg(`Generation failed: ${reason}`);
+          setErrorMsg(statusData.error || statusData.detail || "Generation failed on fal.ai");
           setResult("error");
           done = true;
         }
       }
+      if (!done) {
+        setErrorMsg("Timed out after 4 minutes — try again");
+        setResult("error");
+      }
     } catch (e) {
-      console.error("handleGenerate error:", e);
-      setErrorMsg(e.message || "Unknown error — check console for details");
+      setErrorMsg(e.message || "Network error — check your connection");
       setResult("error");
+    } finally {
+      clearInterval(progressRef.current);
+      setProgress(100);
+      setGenerating(false);
     }
-    clearInterval(progressRef.current);
-    setProgress(100);
-    setGenerating(false);
   };
 
   const codeSnippet = `import fal_client
@@ -382,17 +370,8 @@ print(result["video"]["url"])`;
           ))}
         </div>
         <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
-          <button
-            onClick={() => setShowApiPanel(!showApiPanel)}
-            style={{
-              background: "transparent", border: "0.5px solid rgba(255,255,255,0.15)",
-              borderRadius: 8, padding: "7px 14px", cursor: "pointer",
-              color: apiKey ? "#4ade80" : "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: 500,
-              display: "flex", alignItems: "center", gap: 6,
-            }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: apiKey ? "#4ade80" : "rgba(255,255,255,0.2)", display: "inline-block" }} />
-            {apiKey ? "API Connected" : "Connect API"}
-          </button>
+          {/* Connect API button — hidden for live version */}
+          {/* <button onClick={() => setShowApiPanel(!showApiPanel)} ...>Connect API</button> */}
           <button style={{
             background: "#7c3aed", border: "none", borderRadius: 8,
             padding: "7px 16px", cursor: "pointer", color: "#fff", fontSize: 12, fontWeight: 600,
@@ -400,76 +379,8 @@ print(result["video"]["url"])`;
         </div>
       </nav>
 
-      {/* API Key Panel */}
-      {showApiPanel && (
-        <div style={{
-          position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 200,
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }} onClick={() => setShowApiPanel(false)}>
-          <div style={{
-            background: "#111", border: "0.5px solid rgba(255,255,255,0.12)",
-            borderRadius: 16, padding: 32, width: 460, maxWidth: "90vw",
-          }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ margin: "0 0 6px", fontFamily: "'Space Grotesk'", fontWeight: 600, fontSize: 18 }}>Connect fal.ai API</h3>
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: "0 0 20px", lineHeight: 1.6 }}>
-              Get your API key from <a href="https://fal.ai/dashboard/keys" style={{ color: "#7c3aed" }}>fal.ai/dashboard/keys</a>. 
-              Access to Seedance, Kling, Veo, Wan, and Runway under one API.
-            </p>
-            <input
-              type="password"
-              placeholder="fal_•••••••••••••••••••••"
-              value={apiKey}
-              onChange={e => {
-                setApiKey(e.target.value);
-                setKeyStatus(null);
-                if (e.target.value.trim()) {
-                  localStorage.setItem("fal_api_key", e.target.value.trim());
-                } else {
-                  localStorage.removeItem("fal_api_key");
-                }
-              }}
-              style={{
-                width: "100%", padding: "12px 14px", borderRadius: 10,
-                background: "#1a1a1a", border: `0.5px solid ${keyStatus === "valid" ? "rgba(74,222,128,0.4)" : keyStatus === "invalid" ? "rgba(225,29,72,0.4)" : "rgba(255,255,255,0.12)"}`,
-                color: "#fff", fontSize: 13, fontFamily: "'DM Mono'", outline: "none",
-                boxSizing: "border-box", transition: "border-color 0.2s",
-              }}
-            />
-            {keyStatus && (
-              <p style={{
-                margin: "8px 0 0", fontSize: 12, fontWeight: 500,
-                color: keyStatus === "valid" ? "#4ade80" : keyStatus === "testing" ? "rgba(255,255,255,0.4)" : "#fda4af",
-              }}>
-                {keyStatus === "testing" && "⏳ Testing key..."}
-                {keyStatus === "valid" && "✓ API key is valid — ready to generate"}
-                {keyStatus === "invalid" && "✗ Invalid key — check fal.ai dashboard"}
-              </p>
-            )}
-            <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
-              <button
-                onClick={testApiKey}
-                disabled={!apiKey.trim() || keyStatus === "testing"}
-                style={{
-                  flex: 1, background: "rgba(255,255,255,0.06)",
-                  border: "0.5px solid rgba(255,255,255,0.15)", borderRadius: 10,
-                  padding: 12, cursor: "pointer", color: "rgba(255,255,255,0.7)", fontSize: 14,
-                  opacity: !apiKey.trim() ? 0.4 : 1,
-                }}>Test Key</button>
-              <button onClick={() => { setShowApiPanel(false); setKeyStatus(null); }} style={{
-                flex: 1, background: "#7c3aed", border: "none", borderRadius: 10,
-                padding: 12, cursor: "pointer", color: "#fff", fontWeight: 600, fontSize: 14,
-              }}>Save Key</button>
-              <button onClick={() => setShowApiPanel(false)} style={{
-                flex: 1, background: "rgba(255,255,255,0.06)", border: "0.5px solid rgba(255,255,255,0.1)",
-                borderRadius: 10, padding: 12, cursor: "pointer", color: "rgba(255,255,255,0.5)", fontSize: 14,
-              }}>Cancel</button>
-            </div>
-            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", marginTop: 14, lineHeight: 1.5 }}>
-              Your key is stored in browser memory only and never sent to our servers.
-            </p>
-          </div>
-        </div>
-      )}
+      {/* API Key Panel — hidden for live version (key stored in backend FAL_KEY env var) */}
+      {/* {showApiPanel && ( <div>...</div> )} */}
 
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 24px" }}>
 
