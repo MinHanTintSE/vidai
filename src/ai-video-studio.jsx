@@ -8,13 +8,17 @@ const MODELS = [
     by: "ByteDance",
     price: "$0.09/sec",
     priceNote: "~$0.45 per 5s clip",
-    maxDur: 10,
     res: ["720p", "1080p"],
     audio: true,
     desc: "Cinema-grade output with native audio-video sync. Ideal for ads, storytelling, and high-end content.",
     color: "#7c3aed",
     tags: ["Audio Sync", "1080p", "Native Audio"],
     endpoint: "bytedance/seedance-2.0/text-to-video",
+    // API constraints
+    durations: [5, 6, 7, 8, 9, 10],       // valid seconds (min 4, max 15)
+    durationFmt: "string",                  // send as "5"
+    aspects: ["16:9", "9:16", "1:1", "4:3", "21:9"],
+    hasResolution: true,
   },
   {
     id: "kling-3",
@@ -23,13 +27,17 @@ const MODELS = [
     by: "Kuaishou",
     price: "$0.10/sec",
     priceNote: "~$0.50 per 5s clip",
-    maxDur: 10,
-    res: ["720p", "1080p", "4K"],
+    res: [],
     audio: true,
     desc: "Multi-shot cinematic sequences with consistent characters. Native 4K output and native audio.",
     color: "#0891b2",
     tags: ["4K Native", "Character Consistency", "Audio"],
     endpoint: "fal-ai/kling-video/v3/pro/text-to-video",
+    // API constraints
+    durations: [5, 10],                     // valid seconds
+    durationFmt: "number",                  // send as 5 (integer)
+    aspects: ["16:9", "9:16", "1:1"],       // only 3 supported
+    hasResolution: false,                   // no resolution field
   },
   {
     id: "veo-3",
@@ -38,13 +46,17 @@ const MODELS = [
     by: "Google DeepMind",
     price: "$0.10/sec",
     priceNote: "Fast tier · ~$0.50 per 5s",
-    maxDur: 8,
-    res: ["720p", "1080p", "4K"],
+    res: ["720p", "1080p"],
     audio: true,
     desc: "Google's flagship model. Best physics simulation, lip-sync, and cinematic spatial depth.",
     color: "#059669",
     tags: ["Physics", "Lip-Sync", "4K"],
     endpoint: "fal-ai/veo3",
+    // API constraints
+    durations: [4, 6, 8],                  // valid seconds
+    durationFmt: "Xs",                      // send as "8s"
+    aspects: ["16:9", "9:16"],             // only 2 supported
+    hasResolution: true,
   },
   {
     id: "wan-2",
@@ -53,13 +65,17 @@ const MODELS = [
     by: "Alibaba",
     price: "$0.05/sec",
     priceNote: "~$0.25 per 5s clip",
-    maxDur: 6,
-    res: ["480p", "720p"],
+    res: ["720p", "1080p"],
     audio: false,
     desc: "Open-source powerhouse. Lowest cost for drafting and iteration. Great for prototyping pipelines.",
     color: "#d97706",
     tags: ["Open Source", "Budget", "Fast Draft"],
     endpoint: "wan/v2.6/text-to-video",
+    // API constraints
+    durations: [5, 10, 15],               // ONLY these 3 values
+    durationFmt: "string",                 // send as "5"
+    aspects: ["16:9", "9:16", "1:1", "4:3"],
+    hasResolution: true,
   },
   {
     id: "runway-gen4",
@@ -68,18 +84,22 @@ const MODELS = [
     by: "Runway",
     price: "$0.05/sec",
     priceNote: "Turbo via API",
-    maxDur: 10,
     res: ["720p", "1080p"],
     audio: false,
     desc: "Industry leader for image-to-video and camera control. Best for reference-guided generation.",
     color: "#e11d48",
     tags: ["Camera Control", "Image-to-Video", "Reference"],
     endpoint: "fal-ai/runway/gen4-turbo",
+    // API constraints
+    durations: [5, 10],
+    durationFmt: "number",
+    aspects: ["16:9", "9:16", "1:1"],
+    hasResolution: false,
   },
 ];
 
 const ASPECTS = ["16:9", "9:16", "1:1", "4:3", "21:9"];
-const DURATIONS = [3, 5, 6, 8, 10];
+const DURATIONS = [5, 6, 8, 10];
 
 const GALLERY = [
   { id: 1, prompt: "A lone wolf running through a snow blizzard at dusk, cinematic slow motion", model: "Seedance 2.0", dur: "5s", res: "1080p", thumb: null },
@@ -187,7 +207,16 @@ export default function App() {
   const [prompt, setPrompt] = useState("");
   const [aspect, setAspect] = useState("16:9");
   const [duration, setDuration] = useState(5);
-  const [resolution, setResolution] = useState("1080p");
+  const [resolution, setResolution] = useState("720p");
+
+  // When model changes, snap duration/aspect/resolution to valid values for that model
+  const handleModelSelect = (id) => {
+    const m = MODELS.find(x => x.id === id);
+    setSelectedModel(id);
+    if (!m.durations.includes(duration)) setDuration(m.durations[0]);
+    if (!m.aspects.includes(aspect)) setAspect(m.aspects[0]);
+    if (m.hasResolution && m.res.length && !m.res.includes(resolution)) setResolution(m.res[0]);
+  };
   const [audio, setAudio] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -251,10 +280,16 @@ export default function App() {
     }, 600);
 
     try {
+      // Build model-specific payload — each model has different field formats
+      const dur = model.durationFmt === "string" ? String(duration)
+                : model.durationFmt === "Xs"     ? `${duration}s`
+                : Number(duration);
+
       const payload = {
-        prompt: prompt,
+        prompt,
         aspect_ratio: aspect,
-        duration: duration,
+        duration: dur,
+        ...(model.hasResolution ? { resolution } : {}),
         ...(audio && model.audio ? { generate_audio: true } : {}),
       };
 
@@ -555,9 +590,9 @@ print(result["video"]["url"])`;
                 display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12, marginBottom: 24,
               }}>
                 {[
-                  { label: "Aspect Ratio", values: ASPECTS, val: aspect, set: setAspect },
-                  { label: "Duration (sec)", values: DURATIONS.filter(d => d <= model.maxDur), val: duration, set: setDuration },
-                  { label: "Resolution", values: model.res, val: resolution, set: setResolution },
+                  { label: "Aspect Ratio", values: model.aspects, val: aspect, set: setAspect },
+                  { label: "Duration (sec)", values: model.durations, val: duration, set: v => setDuration(Number(v)) },
+                  ...(model.hasResolution ? [{ label: "Resolution", values: model.res, val: resolution, set: setResolution }] : []),
                 ].map(({ label, values, val, set }) => (
                   <div key={label}>
                     <label style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", display: "block", marginBottom: 6, fontWeight: 500 }}>{label}</label>
@@ -610,7 +645,7 @@ print(result["video"]["url"])`;
               <p style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.35)", letterSpacing: 1, marginBottom: 12, textTransform: "uppercase" }}>Select Model</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {MODELS.map(m => (
-                  <ModelCard key={m.id} model={m} selected={selectedModel} onClick={setSelectedModel} />
+                  <ModelCard key={m.id} model={m} selected={selectedModel} onClick={handleModelSelect} />
                 ))}
               </div>
             </div>
@@ -652,8 +687,8 @@ print(result["video"]["url"])`;
                   </div>
                   <div style={{ margin: "16px 0", borderTop: "0.5px solid rgba(255,255,255,0.07)", paddingTop: 14 }}>
                     {[
-                      ["Resolution", m.res.join(", ")],
-                      ["Max Duration", `${m.maxDur}s`],
+                      ["Resolution", m.res.length ? m.res.join(", ") : "N/A"],
+                      ["Max Duration", `${Math.max(...m.durations)}s`],
                       ["Native Audio", m.audio ? "Yes ✓" : "No"],
                       ["10s clip cost", `$${(parseFloat(m.price.replace("$","").replace("/sec","")) * 10).toFixed(2)}`],
                     ].map(([k, v]) => (
