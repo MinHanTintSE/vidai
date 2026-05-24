@@ -14,7 +14,7 @@ const MODELS = [
     desc: "Cinema-grade output with native audio-video sync. Ideal for ads, storytelling, and high-end content.",
     color: "#7c3aed",
     tags: ["Audio Sync", "1080p", "Native Audio"],
-    endpoint: "fal-ai/seedance-v2",
+    endpoint: "bytedance/seedance-2.0/text-to-video",
   },
   {
     id: "kling-3",
@@ -59,7 +59,7 @@ const MODELS = [
     desc: "Open-source powerhouse. Lowest cost for drafting and iteration. Great for prototyping pipelines.",
     color: "#d97706",
     tags: ["Open Source", "Budget", "Fast Draft"],
-    endpoint: "fal-ai/wan-v2-6/text-to-video",
+    endpoint: "wan/v2.6/text-to-video",
   },
   {
     id: "runway-gen4",
@@ -192,12 +192,29 @@ export default function App() {
   const [generating, setGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState(null);
-  const [apiKey, setApiKey] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem("fal_api_key") || "");
   const [showApiPanel, setShowApiPanel] = useState(false);
   const [navSection, setNavSection] = useState("studio");
   const [imageFile, setImageFile] = useState(null);
   const [enhancedPrompt, setEnhancedPrompt] = useState("");
   const [enhancing, setEnhancing] = useState(false);
+  const [keyStatus, setKeyStatus] = useState(null); // null | "testing" | "valid" | "invalid"
+
+  const testApiKey = async () => {
+    if (!apiKey.trim()) return;
+    setKeyStatus("testing");
+    try {
+      // Check a fake request ID — 401/403 = bad key, 404 = key valid (auth passed)
+      const res = await fetch(
+        "https://queue.fal.run/fal-ai/seedance-v2/requests/test-key-check/status",
+        { headers: { "Authorization": `Key ${apiKey}` } }
+      );
+      setKeyStatus(res.status === 401 || res.status === 403 ? "invalid" : "valid");
+    } catch {
+      setKeyStatus("invalid");
+    }
+  };
   const fileRef = useRef();
   const progressRef = useRef();
 
@@ -237,6 +254,7 @@ export default function App() {
     setGenerating(true);
     setProgress(0);
     setResult(null);
+    setErrorMsg("");
 
     progressRef.current = setInterval(() => {
       setProgress(p => {
@@ -261,7 +279,19 @@ export default function App() {
         body: JSON.stringify(payload),
       });
       const submitData = await submitRes.json();
+      console.log("fal.ai submit status:", submitRes.status);
+      console.log("fal.ai submit response:", submitData);
+
+      if (!submitRes.ok) {
+        console.error("fal.ai submit error:", submitData);
+        throw new Error(submitData?.detail || submitData?.message || submitData?.error || `HTTP ${submitRes.status}`);
+      }
+
       const requestId = submitData.request_id;
+      if (!requestId) {
+        console.error("fal.ai response missing request_id:", submitData);
+        throw new Error("No request_id in response — check API key and endpoint");
+      }
 
       let done = false;
       while (!done) {
@@ -270,19 +300,33 @@ export default function App() {
           headers: { "Authorization": `Key ${apiKey}` },
         });
         const statusData = await statusRes.json();
+        console.log("fal.ai status:", statusData.status, statusData);
         if (statusData.status === "COMPLETED") {
           const resultRes = await fetch(`https://queue.fal.run/${model.endpoint}/requests/${requestId}`, {
             headers: { "Authorization": `Key ${apiKey}` },
           });
           const resultData = await resultRes.json();
-          setResult(resultData.video?.url || resultData.video_url || null);
+          console.log("fal.ai result:", resultData);
+          // fal.ai returns video URL under different keys depending on the model
+          const videoUrl =
+            resultData.video?.url ||
+            resultData.video_url ||
+            resultData.videos?.[0]?.url ||
+            resultData.output?.video_url ||
+            null;
+          setResult(videoUrl);
           done = true;
         } else if (statusData.status === "FAILED") {
+          const reason = statusData.error || statusData.detail || JSON.stringify(statusData.logs?.slice(-1)?.[0] || "Unknown reason");
+          console.error("fal.ai generation FAILED:", statusData);
+          setErrorMsg(`Generation failed: ${reason}`);
           setResult("error");
           done = true;
         }
       }
     } catch (e) {
+      console.error("handleGenerate error:", e);
+      setErrorMsg(e.message || "Unknown error — check console for details");
       setResult("error");
     }
     clearInterval(progressRef.current);
@@ -375,16 +419,43 @@ print(result["video"]["url"])`;
               type="password"
               placeholder="fal_•••••••••••••••••••••"
               value={apiKey}
-              onChange={e => setApiKey(e.target.value)}
+              onChange={e => {
+                setApiKey(e.target.value);
+                setKeyStatus(null);
+                if (e.target.value.trim()) {
+                  localStorage.setItem("fal_api_key", e.target.value.trim());
+                } else {
+                  localStorage.removeItem("fal_api_key");
+                }
+              }}
               style={{
                 width: "100%", padding: "12px 14px", borderRadius: 10,
-                background: "#1a1a1a", border: "0.5px solid rgba(255,255,255,0.12)",
+                background: "#1a1a1a", border: `0.5px solid ${keyStatus === "valid" ? "rgba(74,222,128,0.4)" : keyStatus === "invalid" ? "rgba(225,29,72,0.4)" : "rgba(255,255,255,0.12)"}`,
                 color: "#fff", fontSize: 13, fontFamily: "'DM Mono'", outline: "none",
-                boxSizing: "border-box",
+                boxSizing: "border-box", transition: "border-color 0.2s",
               }}
             />
+            {keyStatus && (
+              <p style={{
+                margin: "8px 0 0", fontSize: 12, fontWeight: 500,
+                color: keyStatus === "valid" ? "#4ade80" : keyStatus === "testing" ? "rgba(255,255,255,0.4)" : "#fda4af",
+              }}>
+                {keyStatus === "testing" && "⏳ Testing key..."}
+                {keyStatus === "valid" && "✓ API key is valid — ready to generate"}
+                {keyStatus === "invalid" && "✗ Invalid key — check fal.ai dashboard"}
+              </p>
+            )}
             <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
-              <button onClick={() => setShowApiPanel(false)} style={{
+              <button
+                onClick={testApiKey}
+                disabled={!apiKey.trim() || keyStatus === "testing"}
+                style={{
+                  flex: 1, background: "rgba(255,255,255,0.06)",
+                  border: "0.5px solid rgba(255,255,255,0.15)", borderRadius: 10,
+                  padding: 12, cursor: "pointer", color: "rgba(255,255,255,0.7)", fontSize: 14,
+                  opacity: !apiKey.trim() ? 0.4 : 1,
+                }}>Test Key</button>
+              <button onClick={() => { setShowApiPanel(false); setKeyStatus(null); }} style={{
                 flex: 1, background: "#7c3aed", border: "none", borderRadius: 10,
                 padding: 12, cursor: "pointer", color: "#fff", fontWeight: 600, fontSize: 14,
               }}>Save Key</button>
@@ -561,7 +632,10 @@ print(result["video"]["url"])`;
                   borderRadius: 12, padding: "14px 18px", marginBottom: 16,
                   fontSize: 13, color: "#fda4af",
                 }}>
-                  Generation failed. Check your API key and try again.
+                  <strong style={{ display: "block", marginBottom: 4 }}>⚠ Generation failed</strong>
+                  <span style={{ fontFamily: "'DM Mono'", fontSize: 11, opacity: 0.85 }}>
+                    {errorMsg || "Unknown error — open DevTools Console for details"}
+                  </span>
                 </div>
               )}
 
@@ -717,12 +791,8 @@ print(result["video"]["url"])`;
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-        * { box-sizing: border-box; }
         textarea::placeholder { color: rgba(255,255,255,0.2); }
         select option { background: #111; color: #fff; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
       `}</style>
     </div>
   );
