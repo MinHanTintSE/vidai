@@ -1,6 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseKey) {
+  console.warn('⚠ Supabase env vars missing — auth features disabled. Check your .env file.')
+}
+
 export const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
+  supabaseUrl ?? 'https://placeholder.supabase.co',
+  supabaseKey ?? 'placeholder-key'
 )
