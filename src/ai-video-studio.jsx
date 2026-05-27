@@ -102,14 +102,9 @@ const MODELS = [
 const ASPECTS = ["16:9", "9:16", "1:1", "4:3", "21:9"];
 const DURATIONS = [5, 6, 8, 10];
 
-// ─── Viral Presets (image-to-video) ───────────────────────────────────────────
-const PRESET_CATEGORIES = ["All", "🔥 Trending", "🎬 Cinematic", "⚡ Action", "✨ Aesthetic", "🤖 Sci-Fi", "🏆 Sports"];
-
-// All presets are image-to-video. User uploads their photo; motion is applied to them.
-// endpoint: fal-ai/kling-video/v1.6/pro/image-to-video
-const I2V = "fal-ai/kling-video/v1.6/pro/image-to-video";
-
-const PRESETS = [
+// ─── Viral Presets: loaded from Supabase `presets` table ─────────────────────
+// (No hardcoded preset data here — add/edit/remove presets in the DB directly)
+const _PRESETS_STUB = [
   // 🔥 Trending
   { id: "drift-racing",   name: "Drift Racing",         category: "🔥 Trending",  emoji: "🏎️", color: "#e11d48",
     desc: "You drift at extreme speed on mountain roads at night, sparks flying",
@@ -221,11 +216,9 @@ const PRESETS = [
     motion: "sprints through a football field at incredible speed, dodging every defender with impossible agility, crowd roaring, cinematic tracking shot, turf flying, stadium lights",
     endpoint: I2V, duration: 5, tags: ["Football", "Speed"] },
 
-  { id: "baseball-blast", name: "Baseball Blast",        category: "🏆 Sports",   emoji: "⚾", color: "#f59e0b",
-    desc: "Home run hit — explosive slow-motion shockwave impact",
-    motion: "swings a baseball bat with explosive power, ball rockets off at 180 mph, ultra slow motion shockwave, stadium crowd going wild, chalk dust exploding, cinematic",
-    endpoint: I2V, duration: 5, tags: ["Baseball", "Impact"] },
+  { id: "baseball-blast" }, // stub — data lives in Supabase `presets` table
 ];
+// ─────────────────────────────────────────────────────────────────────────────
 
 const GALLERY = [
   { id: 1, prompt: "A lone wolf running through a snow blizzard at dusk, cinematic slow motion", model: "Seedance 2.0", dur: "5s", res: "1080p", thumb: null },
@@ -609,7 +602,7 @@ function PresetCard({ preset, previewUrl, onClearPreview, onGenerate, isGenerati
           </span>
         </div>
 
-        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.42)", margin: "0 0 10px", lineHeight: 1.5 }}>{preset.desc}</p>
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.42)", margin: "0 0 10px", lineHeight: 1.5 }}>{preset.description}</p>
 
         <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 11 }}>
           {preset.tags.map(t => (
@@ -649,7 +642,51 @@ function PresetCard({ preset, previewUrl, onClearPreview, onGenerate, isGenerati
 }
 
 // ─── Presets Section (self-contained image-to-video flow) ───────────────────────
-function PresetsSection({ user, onShowAuth, previewVideos, onSavePreview, onClearPreview }) {
+function PresetsSection({ user, onShowAuth }) {
+  // ── DB-sourced data ──
+  const [presets, setPresets] = useState([]);
+  const [loadingPresets, setLoadingPresets] = useState(true);
+  const [previewVideos, setPreviewVideos] = useState({}); // { preset_id: video_url }
+
+  // Load presets from DB once
+  useEffect(() => {
+    supabase.from("presets").select("*").eq("active", true).order("sort_order")
+      .then(({ data, error }) => {
+        if (!error) setPresets(data || []);
+        setLoadingPresets(false);
+      });
+  }, []);
+
+  // Load this user's pinned previews from DB whenever user changes
+  useEffect(() => {
+    if (!user) { setPreviewVideos({}); return; }
+    supabase.from("preset_previews").select("preset_id, video_url").eq("user_id", user.id)
+      .then(({ data }) => {
+        const map = {};
+        (data || []).forEach(r => { map[r.preset_id] = r.video_url; });
+        setPreviewVideos(map);
+      });
+  }, [user?.id]);
+
+  const savePreviewVideo = async (presetId, videoUrl) => {
+    setPreviewVideos(prev => ({ ...prev, [presetId]: videoUrl }));
+    if (user) {
+      await supabase.from("preset_previews")
+        .upsert({ user_id: user.id, preset_id: presetId, video_url: videoUrl });
+    }
+  };
+
+  const clearPreviewVideo = async (presetId) => {
+    setPreviewVideos(prev => { const n = { ...prev }; delete n[presetId]; return n; });
+    if (user) {
+      await supabase.from("preset_previews")
+        .delete().eq("user_id", user.id).eq("preset_id", presetId);
+    }
+  };
+
+  // Derive category list from loaded presets
+  const categories = ["All", ...Array.from(new Set(presets.map(p => p.category)))];
+
   const [activeCategory, setActiveCategory] = useState("All");
 
   // Image upload state
@@ -667,7 +704,7 @@ function PresetsSection({ user, onShowAuth, previewVideos, onSavePreview, onClea
   const [errorMsg, setErrorMsg] = useState("");
   const progressRef = useRef();
 
-  const filtered = activeCategory === "All" ? PRESETS : PRESETS.filter(p => p.category === activeCategory);
+  const filtered = activeCategory === "All" ? presets : presets.filter(p => p.category === activeCategory);
 
   // ── Resize image in browser, then upload to fal.ai via backend ──
   const handleImageSelect = async (file) => {
@@ -802,7 +839,7 @@ function PresetsSection({ user, onShowAuth, previewVideos, onSavePreview, onClea
             background: "#e11d4820", color: "#fb7185", borderRadius: 4, border: "0.5px solid #e11d4840",
           }}>VIRAL PRESETS</span>
           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>
-            {PRESETS.length} effects · image-to-video
+            {loadingPresets ? "Loading..." : `${presets.length} effects · image-to-video`}
           </span>
         </div>
         <h2 style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 28, margin: "10px 0 4px", letterSpacing: -0.5 }}>
@@ -873,9 +910,9 @@ function PresetsSection({ user, onShowAuth, previewVideos, onSavePreview, onClea
         </div>
       </div>
 
-      {/* ── Category filter ── */}
+      {/* ── Category filter (derived from DB data) ── */}
       <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
-        {PRESET_CATEGORIES.map(cat => (
+        {categories.map(cat => (
           <button key={cat} onClick={() => setActiveCategory(cat)} style={{
             background: activeCategory === cat ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
             border: `0.5px solid ${activeCategory === cat ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.08)"}`,
@@ -887,13 +924,18 @@ function PresetsSection({ user, onShowAuth, previewVideos, onSavePreview, onClea
       </div>
 
       {/* ── Preset Grid ── */}
+      {loadingPresets && (
+        <div style={{ textAlign: "center", padding: 60 }}>
+          <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 14 }}>Loading presets...</p>
+        </div>
+      )}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 14 }}>
         {filtered.map(preset => (
           <PresetCard
             key={preset.id}
             preset={preset}
             previewUrl={previewVideos[preset.id] || null}
-            onClearPreview={onClearPreview}
+            onClearPreview={clearPreviewVideo}
             onGenerate={handleGenerate}
             isGenerating={generatingId === preset.id}
             progress={progress}
@@ -915,7 +957,7 @@ function PresetsSection({ user, onShowAuth, previewVideos, onSavePreview, onClea
               {resultPresetId && (
                 previewVideos[resultPresetId]
                   ? <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>📌 Pinned as preview</span>
-                  : <button onClick={() => onSavePreview(resultPresetId, result)} style={{
+                  : <button onClick={() => savePreviewVideo(resultPresetId, result)} style={{
                       fontSize: 12, color: "#f59e0b", background: "rgba(245,158,11,0.12)",
                       padding: "5px 12px", borderRadius: 6, border: "0.5px solid rgba(245,158,11,0.3)",
                       cursor: "pointer", fontWeight: 600,
@@ -976,25 +1018,7 @@ export default function App() {
   const [enhancedPrompt, setEnhancedPrompt] = useState("");
   const [enhancing, setEnhancing] = useState(false);
 
-  // Preset preview videos — stored in localStorage, keyed by preset ID
-  const [previewVideos, setPreviewVideos] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("vidai_preset_previews") || "{}"); }
-    catch { return {}; }
-  });
-  const [lastPresetId, setLastPresetId] = useState(null); // which preset was last used
-
-  const savePreviewVideo = (presetId, videoUrl) => {
-    const updated = { ...previewVideos, [presetId]: videoUrl };
-    setPreviewVideos(updated);
-    localStorage.setItem("vidai_preset_previews", JSON.stringify(updated));
-  };
-
-  const clearPreviewVideo = (presetId) => {
-    const updated = { ...previewVideos };
-    delete updated[presetId];
-    setPreviewVideos(updated);
-    localStorage.setItem("vidai_preset_previews", JSON.stringify(updated));
-  };
+  // (preset previews now live in Supabase preset_previews table, managed by PresetsSection)
   // -- API key UI hidden for live version --
   // const [keyStatus, setKeyStatus] = useState(null);
   // const testApiKey = async () => { ... };
@@ -1421,18 +1445,6 @@ print(result["video"]["url"])`;
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
                     <span style={{ fontSize: 12, color: "#4ade80", fontWeight: 600 }}>✓ Video generated</span>
                     <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                      {lastPresetId && (
-                        previewVideos[lastPresetId]
-                          ? <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>📌 Preview saved</span>
-                          : <button
-                              onClick={() => savePreviewVideo(lastPresetId, result)}
-                              style={{
-                                fontSize: 12, color: "#f59e0b", textDecoration: "none",
-                                background: "rgba(245,158,11,0.12)", padding: "5px 12px",
-                                borderRadius: 6, border: "0.5px solid rgba(245,158,11,0.3)",
-                                cursor: "pointer", fontWeight: 600,
-                              }}>📌 Pin as preset preview</button>
-                      )}
                       <a href={result} download style={{
                         fontSize: 12, color: "#7c3aed", textDecoration: "none",
                         background: "rgba(124,58,237,0.15)", padding: "5px 12px", borderRadius: 6,
@@ -1608,9 +1620,6 @@ print(result["video"]["url"])`;
           <PresetsSection
             user={user}
             onShowAuth={() => setShowAuth(true)}
-            previewVideos={previewVideos}
-            onSavePreview={savePreviewVideo}
-            onClearPreview={clearPreviewVideo}
           />
         )}
 
