@@ -102,6 +102,216 @@ const MODELS = [
 const ASPECTS = ["16:9", "9:16", "1:1", "4:3", "21:9"];
 const DURATIONS = [5, 6, 8, 10];
 
+// ─── Viral Presets ─────────────────────────────────────────────────────────────
+const PRESET_CATEGORIES = ["All", "🔥 Trending", "🎬 Cinematic", "⚡ Action", "✨ Aesthetic", "🤖 Sci-Fi", "🏆 Sports"];
+
+const PRESETS = [
+  // 🔥 Trending
+  {
+    id: "drift-racing", name: "Drift Racing", category: "🔥 Trending",
+    emoji: "🏎️", color: "#e11d48",
+    desc: "High-speed drift with cinematic sparks and tire smoke",
+    subjectHint: "e.g. a red Ferrari, a sports car",
+    prompt: s => `${s} drifting at extreme speed on a winding mountain road at night, tires screaming and smoking, bright sparks flying, cinematic slow motion, dramatic neon lighting, 4K ultra sharp`,
+    model: "kling-3", aspect: "16:9", duration: 5,
+    tags: ["Action", "Cars", "Night"],
+  },
+  {
+    id: "zombie-dance", name: "Zombie Dance", category: "🔥 Trending",
+    emoji: "🧟", color: "#84cc16",
+    desc: "Subject transforms into a zombie and breaks into a viral dance",
+    subjectHint: "e.g. a person in a suit, a chef",
+    prompt: s => `${s} suddenly transforms into a zombie with glowing eyes and rotting skin, then breaks into an energetic viral dance, dramatic transformation effect, horror-comedy style, cinematic lighting`,
+    model: "seedance-2", aspect: "9:16", duration: 5,
+    tags: ["Viral", "Dance", "Horror"],
+  },
+  {
+    id: "cgi-breakdown", name: "CGI Breakdown", category: "🔥 Trending",
+    emoji: "💥", color: "#f97316",
+    desc: "Object explodes into particles and reassembles — satisfying CGI effect",
+    subjectHint: "e.g. a luxury watch, a sports car, a helmet",
+    prompt: s => `${s} dramatically explodes into thousands of glowing particles that swirl and orbit before perfectly reassembling in slow motion, hyper-realistic CGI, studio lighting, black background, ultra detailed`,
+    model: "veo-3", aspect: "16:9", duration: 6,
+    tags: ["CGI", "VFX", "Satisfying"],
+  },
+  {
+    id: "android-assemble", name: "Android Assemble", category: "🔥 Trending",
+    emoji: "🤖", color: "#06b6d4",
+    desc: "Robotic parts fly in and assemble into a full android figure",
+    subjectHint: "e.g. a humanoid robot, an iron man suit",
+    prompt: s => `Hundreds of metallic robotic parts fly in from all directions and magnetically snap together to form ${s}, glowing seams and energy pulses, cinematic dramatic reveal, sci-fi CGI, dark background with particle effects`,
+    model: "veo-3", aspect: "16:9", duration: 6,
+    tags: ["Robot", "CGI", "Sci-Fi"],
+  },
+  // 🎬 Cinematic
+  {
+    id: "orbital-presence", name: "Orbital Presence", category: "🎬 Cinematic",
+    emoji: "🚀", color: "#7c3aed",
+    desc: "Epic space perspective with Earth in the background",
+    subjectHint: "e.g. an astronaut, a space station",
+    prompt: s => `${s} floating peacefully in orbit above Earth, the blue planet curves behind them, golden sunlight cutting through the darkness, ultra-cinematic, IMAX scale, slow rotation, breathtaking space photography`,
+    model: "seedance-2", aspect: "16:9", duration: 8,
+    tags: ["Space", "Epic", "Cinematic"],
+  },
+  {
+    id: "red-carpet", name: "Red Carpet", category: "🎬 Cinematic",
+    emoji: "📸", color: "#f59e0b",
+    desc: "Hollywood glamour with paparazzi flashes and slow motion",
+    subjectHint: "e.g. a woman in a gold dress, a celebrity",
+    prompt: s => `${s} walks confidently down a red carpet, camera flashes exploding all around, crowd cheering, cinematic slow motion, Hollywood glamour lighting, shallow depth of field, luxury event atmosphere`,
+    model: "kling-3", aspect: "9:16", duration: 5,
+    tags: ["Glamour", "Hollywood", "Fashion"],
+  },
+  {
+    id: "dragon-fantasy", name: "Dragon Fantasy", category: "🎬 Cinematic",
+    emoji: "🐉", color: "#dc2626",
+    desc: "Epic fantasy scene riding a dragon through storm clouds",
+    subjectHint: "e.g. a warrior, a knight in armor",
+    prompt: s => `${s} riding a massive fire-breathing dragon soaring through dramatic storm clouds with lightning strikes, epic fantasy cinematography, sweeping camera, Lord of the Rings scale, golden and crimson lighting`,
+    model: "seedance-2", aspect: "16:9", duration: 8,
+    tags: ["Fantasy", "Epic", "Dragon"],
+  },
+  {
+    id: "neon-city", name: "Neon City Walk", category: "🎬 Cinematic",
+    emoji: "🌆", color: "#8b5cf6",
+    desc: "Cyberpunk aesthetic — neon reflections in rain-soaked streets",
+    subjectHint: "e.g. a mysterious figure, a woman in a leather jacket",
+    prompt: s => `${s} walks slowly through a futuristic cyberpunk city at night, neon signs reflecting in rain-soaked streets, steam rising from grates, cinematic dolly shot, Blade Runner atmosphere, ultra-detailed`,
+    model: "seedance-2", aspect: "16:9", duration: 8,
+    tags: ["Cyberpunk", "Night", "Cinematic"],
+  },
+  // ⚡ Action
+  {
+    id: "kung-fu-hit", name: "Kung Fu Impact", category: "⚡ Action",
+    emoji: "🥋", color: "#f97316",
+    desc: "Powerful martial arts strike with shockwave and slow motion",
+    subjectHint: "e.g. a martial artist, a warrior",
+    prompt: s => `${s} delivers an explosive spinning kick, a visible shockwave radiates from the point of impact, debris flying, cinematic ultra slow motion, dramatic backlighting, dust particles suspended in air, 4K`,
+    model: "kling-3", aspect: "16:9", duration: 5,
+    tags: ["Martial Arts", "Slow Motion", "Impact"],
+  },
+  {
+    id: "storm-giant", name: "Storm Giant", category: "⚡ Action",
+    emoji: "⛈️", color: "#3b82f6",
+    desc: "Subject emerges dramatically from a massive storm",
+    subjectHint: "e.g. a giant warrior, a superhero",
+    prompt: s => `${s} rises from a catastrophic storm, lightning strikes around them, hurricane winds, epic biblical scale, God rays breaking through clouds, cinematic slow push-in shot, awe-inspiring atmosphere`,
+    model: "veo-3", aspect: "16:9", duration: 8,
+    tags: ["Epic", "Lightning", "Power"],
+  },
+  {
+    id: "disintegration", name: "Disintegration", category: "⚡ Action",
+    emoji: "✨", color: "#a78bfa",
+    desc: "Subject slowly dissolves into glowing light particles",
+    subjectHint: "e.g. a superhero, a figure in a cloak",
+    prompt: s => `${s} slowly disintegrates from the edges inward, body turning into thousands of glowing golden particles that drift upward and fade, cinematic dramatic lighting, black background, emotional farewell atmosphere, ultra slow motion`,
+    model: "veo-3", aspect: "16:9", duration: 8,
+    tags: ["VFX", "Dramatic", "Particles"],
+  },
+  {
+    id: "monster-slayer", name: "Casual Monster Slayer", category: "⚡ Action",
+    emoji: "👊", color: "#10b981",
+    desc: "Effortlessly defeats a giant monster — epic humor",
+    subjectHint: "e.g. an office worker, a grandma, a kid",
+    prompt: s => `${s} casually defeats a towering 100-meter monster with a single effortless flick, the monster flies away into the horizon, epic scale contrast between tiny human and giant creature, cinematic comedy action`,
+    model: "seedance-2", aspect: "16:9", duration: 5,
+    tags: ["Comedy", "Epic", "Action"],
+  },
+  // ✨ Aesthetic
+  {
+    id: "summer-haze", name: "Summer Haze", category: "✨ Aesthetic",
+    emoji: "🌅", color: "#f59e0b",
+    desc: "Golden hour warmth with film grain and nostalgic vibes",
+    subjectHint: "e.g. a girl in a sundress, a group of friends",
+    prompt: s => `${s} in warm golden hour sunlight, lazy summer afternoon, film grain texture, lens flare, nostalgic 35mm film aesthetic, soft bokeh background, dreamy and carefree atmosphere, slow drift camera`,
+    model: "wan-2", aspect: "16:9", duration: 5,
+    tags: ["Aesthetic", "Summer", "Golden Hour"],
+  },
+  {
+    id: "blue-depth", name: "Blue Depth", category: "✨ Aesthetic",
+    emoji: "🌊", color: "#0891b2",
+    desc: "Underwater cinematic with light rays and slow-motion bubbles",
+    subjectHint: "e.g. a diver, a mermaid, a swimmer",
+    prompt: s => `${s} underwater in crystal clear blue ocean, shafts of light piercing the surface, slow motion bubbles rising, hair flowing weightlessly, cinematic underwater photography, serene and ethereal atmosphere`,
+    model: "seedance-2", aspect: "16:9", duration: 8,
+    tags: ["Underwater", "Cinematic", "Peaceful"],
+  },
+  {
+    id: "tuscan-morning", name: "Tuscan Morning", category: "✨ Aesthetic",
+    emoji: "🌿", color: "#84cc16",
+    desc: "Peaceful sunrise yoga in the Tuscan countryside",
+    subjectHint: "e.g. a woman, a yoga instructor",
+    prompt: s => `${s} doing yoga at sunrise in the Tuscan countryside, rolling green hills, cypress trees, golden morning mist, ultra peaceful atmosphere, cinematic drone pullback, birdsong ambiance`,
+    model: "wan-2", aspect: "16:9", duration: 8,
+    tags: ["Peaceful", "Nature", "Morning"],
+  },
+  {
+    id: "in-the-dark", name: "In The Dark", category: "✨ Aesthetic",
+    emoji: "🕯️", color: "#6366f1",
+    desc: "Moody single-light portrait in dramatic darkness",
+    subjectHint: "e.g. a musician, a person",
+    prompt: s => `${s} lit by a single candle or spotlight in complete darkness, dramatic chiaroscuro lighting, slow breathing motion, deep shadows, cinematic portrait, emotional and mysterious atmosphere, shallow depth of field`,
+    model: "kling-3", aspect: "9:16", duration: 5,
+    tags: ["Moody", "Portrait", "Dramatic"],
+  },
+  // 🤖 Sci-Fi
+  {
+    id: "3d-render", name: "3D Render Reveal", category: "🤖 Sci-Fi",
+    emoji: "🔮", color: "#06b6d4",
+    desc: "Subject rendered as hyper-realistic CGI with studio lighting",
+    subjectHint: "e.g. a sneaker, a car, a product",
+    prompt: s => `${s} rendered in stunning hyper-realistic 3D CGI, smooth 360-degree rotation, studio gradient background, ray-traced reflections and shadows, product visualization quality, ultra detailed surface textures`,
+    model: "veo-3", aspect: "16:9", duration: 6,
+    tags: ["CGI", "3D", "Product"],
+  },
+  {
+    id: "time-warp", name: "Time Warp", category: "🤖 Sci-Fi",
+    emoji: "⏱️", color: "#7c3aed",
+    desc: "Subject surrounded by bending time and space",
+    subjectHint: "e.g. a scientist, a figure in a trench coat",
+    prompt: s => `${s} stands at the center of a collapsing time vortex, space and time bending around them, clocks flying apart, electric blue energy tendrils, cinematic sci-fi, Christopher Nolan aesthetic`,
+    model: "veo-3", aspect: "16:9", duration: 8,
+    tags: ["Sci-Fi", "Time", "VFX"],
+  },
+  // 🏆 Sports
+  {
+    id: "race-track", name: "Race Track", category: "🏆 Sports",
+    emoji: "🏁", color: "#f43f5e",
+    desc: "Formula 1 speed — extreme velocity cinematography",
+    subjectHint: "e.g. a Formula 1 car, a race car",
+    prompt: s => `${s} blazing down a Formula 1 race track at 350 km/h, extreme motion blur on surroundings, cinematic chase camera, sparks from the ground, crowd stands blurred, roaring engine, ultra-fast paced`,
+    model: "kling-3", aspect: "16:9", duration: 5,
+    tags: ["Racing", "Speed", "F1"],
+  },
+  {
+    id: "final-serve", name: "Final Serve", category: "🏆 Sports",
+    emoji: "🎾", color: "#84cc16",
+    desc: "Perfect tennis serve in ultra slow motion",
+    subjectHint: "e.g. a tennis player, an athlete",
+    prompt: s => `${s} winds up and delivers a thunderous tennis serve at 250 km/h, ultra slow motion, ball deforming on racket strings, sweat droplets flying, stadium crowd erupting, championship match atmosphere, cinematic`,
+    model: "kling-3", aspect: "16:9", duration: 5,
+    tags: ["Tennis", "Slow Motion", "Sports"],
+  },
+  {
+    id: "baseball-blast", name: "Baseball Blast", category: "🏆 Sports",
+    emoji: "⚾", color: "#f59e0b",
+    desc: "Home run hit with explosive slow-motion impact",
+    subjectHint: "e.g. a baseball player, an athlete",
+    prompt: s => `${s} swings a baseball bat with explosive power, ball rockets off the bat at 180 mph, ultra slow motion shockwave, stadium crowd going wild, chalk dust exploding from the batter's box, cinematic drama`,
+    model: "kling-3", aspect: "16:9", duration: 5,
+    tags: ["Baseball", "Sports", "Impact"],
+  },
+  {
+    id: "football-invader", name: "Football Run", category: "🏆 Sports",
+    emoji: "🏈", color: "#10b981",
+    desc: "Unstoppable run dodging every defender on the field",
+    subjectHint: "e.g. a football player, a running back",
+    prompt: s => `${s} sprints through a football field at incredible speed, dodging every defender with impossible agility, crowd roaring, cinematic tracking shot keeping pace, turf flying, stadium lights blazing`,
+    model: "seedance-2", aspect: "16:9", duration: 5,
+    tags: ["Football", "Speed", "Sports"],
+  },
+];
+
 const GALLERY = [
   { id: 1, prompt: "A lone wolf running through a snow blizzard at dusk, cinematic slow motion", model: "Seedance 2.0", dur: "5s", res: "1080p", thumb: null },
   { id: 2, prompt: "Aerial drone shot of a neon-lit Tokyo street in rain, 4K", model: "Kling 3.0 Pro", dur: "8s", res: "4K", thumb: null },
@@ -396,6 +606,181 @@ function HistorySection({ user }) {
   );
 }
 
+// ─── Presets Section ───────────────────────────────────────────────────────────
+function PresetsSection({ onUsePreset }) {
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [selected, setSelected] = useState(null);
+  const [subject, setSubject] = useState("");
+
+  const filtered = activeCategory === "All"
+    ? PRESETS
+    : PRESETS.filter(p => p.category === activeCategory);
+
+  const handleUse = () => {
+    if (!selected || !subject.trim()) return;
+    onUsePreset({
+      prompt: selected.prompt(subject.trim()),
+      model: selected.model,
+      aspect: selected.aspect,
+      duration: selected.duration,
+    });
+    setSelected(null);
+    setSubject("");
+  };
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+          <span style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: 2, padding: "3px 10px",
+            background: "#e11d4820", color: "#fb7185", borderRadius: 4, border: "0.5px solid #e11d4840",
+          }}>VIRAL PRESETS</span>
+          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>{PRESETS.length} effects · pick one, type your subject, generate</span>
+        </div>
+        <h2 style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 28, margin: "10px 0 4px", letterSpacing: -0.5 }}>
+          Go viral in seconds.
+        </h2>
+        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", margin: 0 }}>
+          Pre-built cinematic prompts. Add your subject and generate instantly.
+        </p>
+      </div>
+
+      {/* Category filter */}
+      <div style={{
+        display: "flex", gap: 6, marginBottom: 24, flexWrap: "wrap",
+      }}>
+        {PRESET_CATEGORIES.map(cat => (
+          <button key={cat} onClick={() => setActiveCategory(cat)} style={{
+            background: activeCategory === cat ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
+            border: `0.5px solid ${activeCategory === cat ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.08)"}`,
+            borderRadius: 8, padding: "7px 14px", cursor: "pointer",
+            color: activeCategory === cat ? "#fff" : "rgba(255,255,255,0.45)",
+            fontSize: 12, fontWeight: activeCategory === cat ? 600 : 400,
+            transition: "all 0.15s",
+          }}>{cat}</button>
+        ))}
+      </div>
+
+      {/* Preset Grid */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+        gap: 12,
+      }}>
+        {filtered.map(preset => {
+          const isSelected = selected?.id === preset.id;
+          return (
+            <div key={preset.id}
+              onClick={() => { setSelected(isSelected ? null : preset); setSubject(""); }}
+              style={{
+                background: isSelected ? `${preset.color}12` : "#0f0f0f",
+                border: `1.5px solid ${isSelected ? preset.color : "rgba(255,255,255,0.07)"}`,
+                borderRadius: 14, padding: "18px 18px 16px",
+                cursor: "pointer", transition: "all 0.2s",
+                position: "relative", overflow: "hidden",
+              }}
+              onMouseEnter={e => { if (!isSelected) e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)"; }}
+              onMouseLeave={e => { if (!isSelected) e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)"; }}
+            >
+              {/* Color accent top bar */}
+              <div style={{
+                position: "absolute", top: 0, left: 0, right: 0, height: 3,
+                background: `linear-gradient(90deg, ${preset.color}, ${preset.color}44)`,
+              }} />
+
+              {/* Header row */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 22 }}>{preset.emoji}</span>
+                  <span style={{ fontFamily: "'Space Grotesk'", fontWeight: 600, fontSize: 14, color: "#fff" }}>{preset.name}</span>
+                </div>
+                <span style={{
+                  fontSize: 9, fontWeight: 700, letterSpacing: 0.5,
+                  padding: "2px 7px", borderRadius: 4,
+                  background: `${preset.color}25`, color: preset.color,
+                  whiteSpace: "nowrap",
+                }}>{preset.category.replace(/^[^ ]+ /, "")}</span>
+              </div>
+
+              {/* Description */}
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: "0 0 10px", lineHeight: 1.5 }}>
+                {preset.desc}
+              </p>
+
+              {/* Tags + model */}
+              <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 10 }}>
+                {preset.tags.map(t => (
+                  <span key={t} style={{
+                    fontSize: 10, padding: "2px 7px",
+                    background: "rgba(255,255,255,0.05)", borderRadius: 4,
+                    color: "rgba(255,255,255,0.4)", border: "0.5px solid rgba(255,255,255,0.08)",
+                  }}>{t}</span>
+                ))}
+                <span style={{
+                  fontSize: 10, padding: "2px 7px",
+                  background: `${preset.color}15`, borderRadius: 4,
+                  color: preset.color, border: `0.5px solid ${preset.color}30`,
+                  marginLeft: "auto",
+                }}>{MODELS.find(m => m.id === preset.model)?.name}</span>
+              </div>
+
+              {/* Expanded: subject input */}
+              {isSelected && (
+                <div onClick={e => e.stopPropagation()} style={{ marginTop: 12 }}>
+                  <div style={{ height: "0.5px", background: "rgba(255,255,255,0.08)", marginBottom: 12 }} />
+                  <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "0 0 8px" }}>
+                    What is your subject? <span style={{ color: "rgba(255,255,255,0.25)" }}>{preset.subjectHint}</span>
+                  </p>
+                  <input
+                    autoFocus
+                    value={subject}
+                    onChange={e => setSubject(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && handleUse()}
+                    placeholder={preset.subjectHint}
+                    style={{
+                      width: "100%", background: "#1a1a1a",
+                      border: `0.5px solid ${preset.color}50`,
+                      borderRadius: 8, padding: "10px 12px",
+                      color: "#fff", fontSize: 13, outline: "none",
+                      boxSizing: "border-box", marginBottom: 10,
+                    }}
+                  />
+                  <button
+                    onClick={handleUse}
+                    disabled={!subject.trim()}
+                    style={{
+                      width: "100%", background: subject.trim() ? preset.color : "rgba(255,255,255,0.06)",
+                      border: "none", borderRadius: 8, padding: "10px 0",
+                      cursor: subject.trim() ? "pointer" : "default",
+                      color: subject.trim() ? "#fff" : "rgba(255,255,255,0.3)",
+                      fontWeight: 600, fontSize: 13, transition: "all 0.15s",
+                    }}
+                  >
+                    Use This Preset →
+                  </button>
+                </div>
+              )}
+
+              {/* Collapsed: hint to click */}
+              {!isSelected && (
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  fontSize: 11, color: "rgba(255,255,255,0.25)",
+                }}>
+                  <span>{preset.aspect} · {preset.duration}s</span>
+                  <span style={{ marginLeft: "auto" }}>Click to use →</span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main App ───────────────────────────────────────────────────────────────────
 export default function App() {
   const [tab, setTab] = useState("txt2vid");
@@ -649,13 +1034,13 @@ print(result["video"]["url"])`;
           <span style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 16, letterSpacing: -0.5 }}>VIDAI<span style={{ color: "#7c3aed" }}>.</span>studio</span>
         </div>
         <div style={{ display: "flex", gap: 4, marginLeft: 8 }}>
-          {["studio", "gallery", "pricing", "docs", ...(user ? ["history"] : [])].map(s => (
+          {["studio", "presets", "gallery", "pricing", "docs", ...(user ? ["history"] : [])].map(s => (
             <button key={s} onClick={() => setNavSection(s)} style={{
               background: navSection === s ? "rgba(255,255,255,0.07)" : "transparent",
               border: "none", cursor: "pointer", padding: "6px 14px", borderRadius: 8,
               color: navSection === s ? "#fff" : "rgba(255,255,255,0.4)",
               fontSize: 13, fontWeight: 500, textTransform: "capitalize",
-            }}>{s}</button>
+            }}>{s === "presets" ? "🔥 Presets" : s}</button>
           ))}
         </div>
         <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
@@ -1021,6 +1406,24 @@ print(result["video"]["url"])`;
               </div>
             ))}
           </div>
+        )}
+
+        {navSection === "presets" && (
+          <PresetsSection
+            onUsePreset={({ prompt: p, model: m, aspect: a, duration: d }) => {
+              // Snap to valid model values
+              const modelObj = MODELS.find(x => x.id === m);
+              setSelectedModel(m);
+              setPrompt(p);
+              setAspect(modelObj?.aspects.includes(a) ? a : modelObj?.aspects[0] ?? a);
+              const dur = Number(d);
+              setDuration(modelObj?.durations.includes(dur) ? dur : modelObj?.durations[0] ?? dur);
+              if (modelObj?.hasResolution && modelObj.res.length) setResolution(modelObj.res[0]);
+              setNavSection("studio");
+              // Small scroll to top so user sees the studio
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          />
         )}
 
         {navSection === "history" && (
