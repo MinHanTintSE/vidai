@@ -102,214 +102,129 @@ const MODELS = [
 const ASPECTS = ["16:9", "9:16", "1:1", "4:3", "21:9"];
 const DURATIONS = [5, 6, 8, 10];
 
-// ─── Viral Presets ─────────────────────────────────────────────────────────────
+// ─── Viral Presets (image-to-video) ───────────────────────────────────────────
 const PRESET_CATEGORIES = ["All", "🔥 Trending", "🎬 Cinematic", "⚡ Action", "✨ Aesthetic", "🤖 Sci-Fi", "🏆 Sports"];
+
+// All presets are image-to-video. User uploads their photo; motion is applied to them.
+// endpoint: fal-ai/kling-video/v1.6/pro/image-to-video
+const I2V = "fal-ai/kling-video/v1.6/pro/image-to-video";
 
 const PRESETS = [
   // 🔥 Trending
-  {
-    id: "drift-racing", name: "Drift Racing", category: "🔥 Trending",
-    emoji: "🏎️", color: "#e11d48",
-    desc: "High-speed drift with cinematic sparks and tire smoke",
-    subjectHint: "e.g. a red Ferrari, a sports car",
-    prompt: s => `${s} drifting at extreme speed on a winding mountain road at night, tires screaming and smoking, bright sparks flying, cinematic slow motion, dramatic neon lighting, 4K ultra sharp`,
-    model: "kling-3", aspect: "16:9", duration: 5,
-    tags: ["Action", "Cars", "Night"],
-  },
-  {
-    id: "zombie-dance", name: "Zombie Dance", category: "🔥 Trending",
-    emoji: "🧟", color: "#84cc16",
-    desc: "Subject transforms into a zombie and breaks into a viral dance",
-    subjectHint: "e.g. a person in a suit, a chef",
-    prompt: s => `${s} suddenly transforms into a zombie with glowing eyes and rotting skin, then breaks into an energetic viral dance, dramatic transformation effect, horror-comedy style, cinematic lighting`,
-    model: "seedance-2", aspect: "9:16", duration: 5,
-    tags: ["Viral", "Dance", "Horror"],
-  },
-  {
-    id: "cgi-breakdown", name: "CGI Breakdown", category: "🔥 Trending",
-    emoji: "💥", color: "#f97316",
-    desc: "Object explodes into particles and reassembles — satisfying CGI effect",
-    subjectHint: "e.g. a luxury watch, a sports car, a helmet",
-    prompt: s => `${s} dramatically explodes into thousands of glowing particles that swirl and orbit before perfectly reassembling in slow motion, hyper-realistic CGI, studio lighting, black background, ultra detailed`,
-    model: "veo-3", aspect: "16:9", duration: 6,
-    tags: ["CGI", "VFX", "Satisfying"],
-  },
-  {
-    id: "android-assemble", name: "Android Assemble", category: "🔥 Trending",
-    emoji: "🤖", color: "#06b6d4",
-    desc: "Robotic parts fly in and assemble into a full android figure",
-    subjectHint: "e.g. a humanoid robot, an iron man suit",
-    prompt: s => `Hundreds of metallic robotic parts fly in from all directions and magnetically snap together to form ${s}, glowing seams and energy pulses, cinematic dramatic reveal, sci-fi CGI, dark background with particle effects`,
-    model: "veo-3", aspect: "16:9", duration: 6,
-    tags: ["Robot", "CGI", "Sci-Fi"],
-  },
+  { id: "drift-racing",   name: "Drift Racing",         category: "🔥 Trending",  emoji: "🏎️", color: "#e11d48",
+    desc: "You drift at extreme speed on mountain roads at night, sparks flying",
+    motion: "drifting at extreme speed on a winding mountain road at night, tires screaming and smoking, bright sparks flying, cinematic slow motion, dramatic neon lighting",
+    endpoint: I2V, duration: 5, tags: ["Action", "Cars"] },
+
+  { id: "zombie-dance",   name: "Zombie Dance",          category: "🔥 Trending",  emoji: "🧟", color: "#84cc16",
+    desc: "You transform into a zombie and break into a viral dance",
+    motion: "transforms into a zombie with glowing eyes, then breaks into an energetic viral dance, horror-comedy style, dramatic transformation, cinematic lighting",
+    endpoint: I2V, duration: 5, tags: ["Viral", "Dance"] },
+
+  { id: "cgi-breakdown",  name: "CGI Breakdown",         category: "🔥 Trending",  emoji: "💥", color: "#f97316",
+    desc: "You explode into glowing particles and reassemble — viral CGI effect",
+    motion: "explodes into thousands of glowing particles that swirl and orbit before perfectly reassembling, hyper-realistic CGI, studio lighting, ultra satisfying",
+    endpoint: I2V, duration: 5, tags: ["CGI", "VFX"] },
+
+  { id: "android-assemble", name: "Android Assemble",   category: "🔥 Trending",  emoji: "🤖", color: "#06b6d4",
+    desc: "Metallic armor assembles around you piece by piece",
+    motion: "stands still as hundreds of metallic armor pieces fly in from all directions and lock onto the body, glowing energy seams, Iron Man style assembly, cinematic reveal",
+    endpoint: I2V, duration: 5, tags: ["Robot", "CGI"] },
+
   // 🎬 Cinematic
-  {
-    id: "orbital-presence", name: "Orbital Presence", category: "🎬 Cinematic",
-    emoji: "🚀", color: "#7c3aed",
-    desc: "Epic space perspective with Earth in the background",
-    subjectHint: "e.g. an astronaut, a space station",
-    prompt: s => `${s} floating peacefully in orbit above Earth, the blue planet curves behind them, golden sunlight cutting through the darkness, ultra-cinematic, IMAX scale, slow rotation, breathtaking space photography`,
-    model: "seedance-2", aspect: "16:9", duration: 8,
-    tags: ["Space", "Epic", "Cinematic"],
-  },
-  {
-    id: "red-carpet", name: "Red Carpet", category: "🎬 Cinematic",
-    emoji: "📸", color: "#f59e0b",
-    desc: "Hollywood glamour with paparazzi flashes and slow motion",
-    subjectHint: "e.g. a woman in a gold dress, a celebrity",
-    prompt: s => `${s} walks confidently down a red carpet, camera flashes exploding all around, crowd cheering, cinematic slow motion, Hollywood glamour lighting, shallow depth of field, luxury event atmosphere`,
-    model: "kling-3", aspect: "9:16", duration: 5,
-    tags: ["Glamour", "Hollywood", "Fashion"],
-  },
-  {
-    id: "dragon-fantasy", name: "Dragon Fantasy", category: "🎬 Cinematic",
-    emoji: "🐉", color: "#dc2626",
-    desc: "Epic fantasy scene riding a dragon through storm clouds",
-    subjectHint: "e.g. a warrior, a knight in armor",
-    prompt: s => `${s} riding a massive fire-breathing dragon soaring through dramatic storm clouds with lightning strikes, epic fantasy cinematography, sweeping camera, Lord of the Rings scale, golden and crimson lighting`,
-    model: "seedance-2", aspect: "16:9", duration: 8,
-    tags: ["Fantasy", "Epic", "Dragon"],
-  },
-  {
-    id: "neon-city", name: "Neon City Walk", category: "🎬 Cinematic",
-    emoji: "🌆", color: "#8b5cf6",
-    desc: "Cyberpunk aesthetic — neon reflections in rain-soaked streets",
-    subjectHint: "e.g. a mysterious figure, a woman in a leather jacket",
-    prompt: s => `${s} walks slowly through a futuristic cyberpunk city at night, neon signs reflecting in rain-soaked streets, steam rising from grates, cinematic dolly shot, Blade Runner atmosphere, ultra-detailed`,
-    model: "seedance-2", aspect: "16:9", duration: 8,
-    tags: ["Cyberpunk", "Night", "Cinematic"],
-  },
+  { id: "orbital-presence", name: "Orbital Presence",   category: "🎬 Cinematic", emoji: "🚀", color: "#7c3aed",
+    desc: "You float in orbit with Earth glowing behind you",
+    motion: "floating peacefully in orbit above Earth, the blue planet curves behind, golden sunlight cutting through darkness, ultra-cinematic, IMAX scale, slow rotation",
+    endpoint: I2V, duration: 5, tags: ["Space", "Epic"] },
+
+  { id: "red-carpet",     name: "Red Carpet",            category: "🎬 Cinematic", emoji: "📸", color: "#f59e0b",
+    desc: "Hollywood glamour — paparazzi flashes, slow motion, crowd cheering",
+    motion: "walks confidently down a red carpet, camera flashes exploding, crowd cheering, cinematic slow motion, Hollywood glamour lighting, celebrity atmosphere",
+    endpoint: I2V, duration: 5, tags: ["Glamour", "Fashion"] },
+
+  { id: "dragon-fantasy", name: "Dragon Fantasy",        category: "🎬 Cinematic", emoji: "🐉", color: "#dc2626",
+    desc: "You ride a fire-breathing dragon through epic storm clouds",
+    motion: "riding a massive fire-breathing dragon soaring through storm clouds with lightning, epic fantasy cinematography, Lord of the Rings scale, golden crimson lighting",
+    endpoint: I2V, duration: 5, tags: ["Fantasy", "Dragon"] },
+
+  { id: "neon-city",      name: "Neon City Walk",        category: "🎬 Cinematic", emoji: "🌆", color: "#8b5cf6",
+    desc: "Cyberpunk night walk — neon reflections in rain-soaked streets",
+    motion: "walks slowly through a futuristic cyberpunk city at night, neon signs reflecting in rain-soaked streets, steam rising, Blade Runner atmosphere, cinematic dolly shot",
+    endpoint: I2V, duration: 5, tags: ["Cyberpunk", "Night"] },
+
   // ⚡ Action
-  {
-    id: "kung-fu-hit", name: "Kung Fu Impact", category: "⚡ Action",
-    emoji: "🥋", color: "#f97316",
-    desc: "Powerful martial arts strike with shockwave and slow motion",
-    subjectHint: "e.g. a martial artist, a warrior",
-    prompt: s => `${s} delivers an explosive spinning kick, a visible shockwave radiates from the point of impact, debris flying, cinematic ultra slow motion, dramatic backlighting, dust particles suspended in air, 4K`,
-    model: "kling-3", aspect: "16:9", duration: 5,
-    tags: ["Martial Arts", "Slow Motion", "Impact"],
-  },
-  {
-    id: "storm-giant", name: "Storm Giant", category: "⚡ Action",
-    emoji: "⛈️", color: "#3b82f6",
-    desc: "Subject emerges dramatically from a massive storm",
-    subjectHint: "e.g. a giant warrior, a superhero",
-    prompt: s => `${s} rises from a catastrophic storm, lightning strikes around them, hurricane winds, epic biblical scale, God rays breaking through clouds, cinematic slow push-in shot, awe-inspiring atmosphere`,
-    model: "veo-3", aspect: "16:9", duration: 8,
-    tags: ["Epic", "Lightning", "Power"],
-  },
-  {
-    id: "disintegration", name: "Disintegration", category: "⚡ Action",
-    emoji: "✨", color: "#a78bfa",
-    desc: "Subject slowly dissolves into glowing light particles",
-    subjectHint: "e.g. a superhero, a figure in a cloak",
-    prompt: s => `${s} slowly disintegrates from the edges inward, body turning into thousands of glowing golden particles that drift upward and fade, cinematic dramatic lighting, black background, emotional farewell atmosphere, ultra slow motion`,
-    model: "veo-3", aspect: "16:9", duration: 8,
-    tags: ["VFX", "Dramatic", "Particles"],
-  },
-  {
-    id: "monster-slayer", name: "Casual Monster Slayer", category: "⚡ Action",
-    emoji: "👊", color: "#10b981",
-    desc: "Effortlessly defeats a giant monster — epic humor",
-    subjectHint: "e.g. an office worker, a grandma, a kid",
-    prompt: s => `${s} casually defeats a towering 100-meter monster with a single effortless flick, the monster flies away into the horizon, epic scale contrast between tiny human and giant creature, cinematic comedy action`,
-    model: "seedance-2", aspect: "16:9", duration: 5,
-    tags: ["Comedy", "Epic", "Action"],
-  },
+  { id: "kung-fu-hit",    name: "Kung Fu Impact",        category: "⚡ Action",    emoji: "🥋", color: "#f97316",
+    desc: "You deliver a powerful strike with a visible shockwave",
+    motion: "delivers an explosive spinning kick, shockwave radiates from point of impact, debris flying, ultra slow motion, dramatic backlighting, dust particles in air",
+    endpoint: I2V, duration: 5, tags: ["Martial Arts", "Slow Mo"] },
+
+  { id: "storm-giant",    name: "Storm Giant",           category: "⚡ Action",    emoji: "⛈️", color: "#3b82f6",
+    desc: "You rise dramatically from a catastrophic lightning storm",
+    motion: "rises from a catastrophic storm, lightning strikes around, hurricane winds, epic biblical scale, God rays breaking through clouds, cinematic slow push-in",
+    endpoint: I2V, duration: 5, tags: ["Epic", "Lightning"] },
+
+  { id: "disintegration", name: "Disintegration",        category: "⚡ Action",    emoji: "✨", color: "#a78bfa",
+    desc: "You dissolve into thousands of glowing golden particles",
+    motion: "slowly disintegrates from the edges, body turning into glowing golden particles drifting upward, cinematic dramatic lighting, emotional farewell, ultra slow motion",
+    endpoint: I2V, duration: 5, tags: ["VFX", "Particles"] },
+
+  { id: "monster-slayer", name: "Monster Slayer",        category: "⚡ Action",    emoji: "👊", color: "#10b981",
+    desc: "You casually defeat a towering giant with one finger",
+    motion: "casually defeats a towering 100-meter monster with a single effortless flick, monster flies into the horizon, epic scale contrast, cinematic comedy action",
+    endpoint: I2V, duration: 5, tags: ["Comedy", "Epic"] },
+
   // ✨ Aesthetic
-  {
-    id: "summer-haze", name: "Summer Haze", category: "✨ Aesthetic",
-    emoji: "🌅", color: "#f59e0b",
-    desc: "Golden hour warmth with film grain and nostalgic vibes",
-    subjectHint: "e.g. a girl in a sundress, a group of friends",
-    prompt: s => `${s} in warm golden hour sunlight, lazy summer afternoon, film grain texture, lens flare, nostalgic 35mm film aesthetic, soft bokeh background, dreamy and carefree atmosphere, slow drift camera`,
-    model: "wan-2", aspect: "16:9", duration: 5,
-    tags: ["Aesthetic", "Summer", "Golden Hour"],
-  },
-  {
-    id: "blue-depth", name: "Blue Depth", category: "✨ Aesthetic",
-    emoji: "🌊", color: "#0891b2",
-    desc: "Underwater cinematic with light rays and slow-motion bubbles",
-    subjectHint: "e.g. a diver, a mermaid, a swimmer",
-    prompt: s => `${s} underwater in crystal clear blue ocean, shafts of light piercing the surface, slow motion bubbles rising, hair flowing weightlessly, cinematic underwater photography, serene and ethereal atmosphere`,
-    model: "seedance-2", aspect: "16:9", duration: 8,
-    tags: ["Underwater", "Cinematic", "Peaceful"],
-  },
-  {
-    id: "tuscan-morning", name: "Tuscan Morning", category: "✨ Aesthetic",
-    emoji: "🌿", color: "#84cc16",
-    desc: "Peaceful sunrise yoga in the Tuscan countryside",
-    subjectHint: "e.g. a woman, a yoga instructor",
-    prompt: s => `${s} doing yoga at sunrise in the Tuscan countryside, rolling green hills, cypress trees, golden morning mist, ultra peaceful atmosphere, cinematic drone pullback, birdsong ambiance`,
-    model: "wan-2", aspect: "16:9", duration: 8,
-    tags: ["Peaceful", "Nature", "Morning"],
-  },
-  {
-    id: "in-the-dark", name: "In The Dark", category: "✨ Aesthetic",
-    emoji: "🕯️", color: "#6366f1",
-    desc: "Moody single-light portrait in dramatic darkness",
-    subjectHint: "e.g. a musician, a person",
-    prompt: s => `${s} lit by a single candle or spotlight in complete darkness, dramatic chiaroscuro lighting, slow breathing motion, deep shadows, cinematic portrait, emotional and mysterious atmosphere, shallow depth of field`,
-    model: "kling-3", aspect: "9:16", duration: 5,
-    tags: ["Moody", "Portrait", "Dramatic"],
-  },
+  { id: "summer-haze",    name: "Summer Haze",           category: "✨ Aesthetic", emoji: "🌅", color: "#f59e0b",
+    desc: "Golden hour warmth — film grain, lens flare, nostalgic summer vibes",
+    motion: "bathed in warm golden hour sunlight, lazy summer afternoon, film grain texture, lens flare, nostalgic 35mm aesthetic, dreamy soft bokeh, slow drift camera",
+    endpoint: I2V, duration: 5, tags: ["Summer", "Golden Hour"] },
+
+  { id: "blue-depth",     name: "Blue Depth",            category: "✨ Aesthetic", emoji: "🌊", color: "#0891b2",
+    desc: "You underwater — light rays, slow-motion bubbles, serene ocean",
+    motion: "underwater in crystal clear blue ocean, shafts of light from surface, slow motion bubbles rising, hair flowing weightlessly, serene cinematic underwater photography",
+    endpoint: I2V, duration: 5, tags: ["Underwater", "Peaceful"] },
+
+  { id: "in-the-dark",    name: "In The Dark",           category: "✨ Aesthetic", emoji: "🕯️", color: "#6366f1",
+    desc: "Moody single-light portrait — deep shadows, cinematic darkness",
+    motion: "lit by a single spotlight in complete darkness, dramatic chiaroscuro lighting, slow subtle breathing motion, deep shadows, emotional and mysterious atmosphere",
+    endpoint: I2V, duration: 5, tags: ["Moody", "Portrait"] },
+
+  { id: "tuscan-morning", name: "Tuscan Morning",        category: "✨ Aesthetic", emoji: "🌿", color: "#84cc16",
+    desc: "Peaceful sunrise in the Italian countryside",
+    motion: "doing yoga at sunrise in the Tuscan countryside, rolling green hills, cypress trees, golden morning mist, peaceful atmosphere, cinematic drone pullback",
+    endpoint: I2V, duration: 5, tags: ["Nature", "Morning"] },
+
   // 🤖 Sci-Fi
-  {
-    id: "3d-render", name: "3D Render Reveal", category: "🤖 Sci-Fi",
-    emoji: "🔮", color: "#06b6d4",
-    desc: "Subject rendered as hyper-realistic CGI with studio lighting",
-    subjectHint: "e.g. a sneaker, a car, a product",
-    prompt: s => `${s} rendered in stunning hyper-realistic 3D CGI, smooth 360-degree rotation, studio gradient background, ray-traced reflections and shadows, product visualization quality, ultra detailed surface textures`,
-    model: "veo-3", aspect: "16:9", duration: 6,
-    tags: ["CGI", "3D", "Product"],
-  },
-  {
-    id: "time-warp", name: "Time Warp", category: "🤖 Sci-Fi",
-    emoji: "⏱️", color: "#7c3aed",
-    desc: "Subject surrounded by bending time and space",
-    subjectHint: "e.g. a scientist, a figure in a trench coat",
-    prompt: s => `${s} stands at the center of a collapsing time vortex, space and time bending around them, clocks flying apart, electric blue energy tendrils, cinematic sci-fi, Christopher Nolan aesthetic`,
-    model: "veo-3", aspect: "16:9", duration: 8,
-    tags: ["Sci-Fi", "Time", "VFX"],
-  },
+  { id: "time-warp",      name: "Time Warp",             category: "🤖 Sci-Fi",   emoji: "⏱️", color: "#7c3aed",
+    desc: "Time and space bend around you — clocks, energy, vortex",
+    motion: "stands at the center of a collapsing time vortex, space bending around, clocks flying apart, electric blue energy tendrils, Christopher Nolan cinematic sci-fi",
+    endpoint: I2V, duration: 5, tags: ["Sci-Fi", "VFX"] },
+
+  { id: "iron-suit",      name: "Iron Suit Up",          category: "🤖 Sci-Fi",   emoji: "⚙️", color: "#e11d48",
+    desc: "A full iron battle suit locks on to your body piece by piece",
+    motion: "stands still as a futuristic iron battle suit materializes and locks onto the body piece by piece with sparks and energy flashes, dramatic heroic reveal, cinematic",
+    endpoint: I2V, duration: 5, tags: ["Armor", "CGI"] },
+
   // 🏆 Sports
-  {
-    id: "race-track", name: "Race Track", category: "🏆 Sports",
-    emoji: "🏁", color: "#f43f5e",
-    desc: "Formula 1 speed — extreme velocity cinematography",
-    subjectHint: "e.g. a Formula 1 car, a race car",
-    prompt: s => `${s} blazing down a Formula 1 race track at 350 km/h, extreme motion blur on surroundings, cinematic chase camera, sparks from the ground, crowd stands blurred, roaring engine, ultra-fast paced`,
-    model: "kling-3", aspect: "16:9", duration: 5,
-    tags: ["Racing", "Speed", "F1"],
-  },
-  {
-    id: "final-serve", name: "Final Serve", category: "🏆 Sports",
-    emoji: "🎾", color: "#84cc16",
-    desc: "Perfect tennis serve in ultra slow motion",
-    subjectHint: "e.g. a tennis player, an athlete",
-    prompt: s => `${s} winds up and delivers a thunderous tennis serve at 250 km/h, ultra slow motion, ball deforming on racket strings, sweat droplets flying, stadium crowd erupting, championship match atmosphere, cinematic`,
-    model: "kling-3", aspect: "16:9", duration: 5,
-    tags: ["Tennis", "Slow Motion", "Sports"],
-  },
-  {
-    id: "baseball-blast", name: "Baseball Blast", category: "🏆 Sports",
-    emoji: "⚾", color: "#f59e0b",
-    desc: "Home run hit with explosive slow-motion impact",
-    subjectHint: "e.g. a baseball player, an athlete",
-    prompt: s => `${s} swings a baseball bat with explosive power, ball rockets off the bat at 180 mph, ultra slow motion shockwave, stadium crowd going wild, chalk dust exploding from the batter's box, cinematic drama`,
-    model: "kling-3", aspect: "16:9", duration: 5,
-    tags: ["Baseball", "Sports", "Impact"],
-  },
-  {
-    id: "football-invader", name: "Football Run", category: "🏆 Sports",
-    emoji: "🏈", color: "#10b981",
-    desc: "Unstoppable run dodging every defender on the field",
-    subjectHint: "e.g. a football player, a running back",
-    prompt: s => `${s} sprints through a football field at incredible speed, dodging every defender with impossible agility, crowd roaring, cinematic tracking shot keeping pace, turf flying, stadium lights blazing`,
-    model: "seedance-2", aspect: "16:9", duration: 5,
-    tags: ["Football", "Speed", "Sports"],
-  },
+  { id: "race-track",     name: "Race Track",            category: "🏆 Sports",   emoji: "🏁", color: "#f43f5e",
+    desc: "You blast down a Formula 1 circuit at 350 km/h",
+    motion: "blazing down a Formula 1 race track at 350 km/h, extreme motion blur, cinematic chase camera, sparks from ground, crowd stands blurred, roaring engine",
+    endpoint: I2V, duration: 5, tags: ["Racing", "F1"] },
+
+  { id: "final-serve",    name: "Final Serve",           category: "🏆 Sports",   emoji: "🎾", color: "#84cc16",
+    desc: "Championship tennis serve — ultra slow motion at 250 km/h",
+    motion: "delivers a thunderous tennis serve at 250 km/h, ultra slow motion, ball deforming on racket strings, sweat droplets flying, stadium crowd erupting, cinematic",
+    endpoint: I2V, duration: 5, tags: ["Tennis", "Slow Mo"] },
+
+  { id: "football-run",   name: "Football Run",          category: "🏆 Sports",   emoji: "🏈", color: "#10b981",
+    desc: "Unstoppable field run — dodge every defender at impossible speed",
+    motion: "sprints through a football field at incredible speed, dodging every defender with impossible agility, crowd roaring, cinematic tracking shot, turf flying, stadium lights",
+    endpoint: I2V, duration: 5, tags: ["Football", "Speed"] },
+
+  { id: "baseball-blast", name: "Baseball Blast",        category: "🏆 Sports",   emoji: "⚾", color: "#f59e0b",
+    desc: "Home run hit — explosive slow-motion shockwave impact",
+    motion: "swings a baseball bat with explosive power, ball rockets off at 180 mph, ultra slow motion shockwave, stadium crowd going wild, chalk dust exploding, cinematic",
+    endpoint: I2V, duration: 5, tags: ["Baseball", "Impact"] },
 ];
 
 const GALLERY = [
@@ -606,231 +521,280 @@ function HistorySection({ user }) {
   );
 }
 
-// ─── Preset Preview Card ───────────────────────────────────────────────────────
-function PresetCard({ preset, isSelected, onSelect, onUse, previewUrl, onClearPreview }) {
+// ─── Preset Card (image-to-video, no text input) ───────────────────────────────
+function PresetCard({ preset, previewUrl, onClearPreview, onGenerate, isGenerating, progress, disabled, hasImage }) {
   const [hovered, setHovered] = useState(false);
-  const [subject, setSubject] = useState("");
   const videoRef = useRef();
 
-  // Play/pause video on hover
   useEffect(() => {
     if (!videoRef.current) return;
-    if (hovered || isSelected) videoRef.current.play().catch(() => {});
+    if (hovered) videoRef.current.play().catch(() => {});
     else videoRef.current.pause();
-  }, [hovered, isSelected]);
-
-  const handleUse = () => {
-    if (!subject.trim()) return;
-    onUse({ subject, preset });
-    setSubject("");
-  };
+  }, [hovered]);
 
   return (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onClick={() => { if (!isSelected) { onSelect(preset); } }}
       style={{
         background: "#0d0d0d",
-        border: `1.5px solid ${isSelected ? preset.color : hovered ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.07)"}`,
+        border: `1.5px solid ${isGenerating ? preset.color : hovered ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.07)"}`,
         borderRadius: 14, overflow: "hidden",
-        cursor: isSelected ? "default" : "pointer",
         transition: "border-color 0.2s, transform 0.2s",
-        transform: hovered && !isSelected ? "translateY(-2px)" : "none",
+        transform: hovered && !isGenerating ? "translateY(-2px)" : "none",
       }}
     >
-      {/* ── Preview area (video or animated gradient) ── */}
+      {/* ── Preview / thumbnail area ── */}
       <div style={{ position: "relative", height: 160, overflow: "hidden", background: "#0a0a0a" }}>
         {previewUrl ? (
           <>
-            <video
-              ref={videoRef}
-              src={previewUrl}
-              loop muted playsInline
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-            />
-            {/* gradient overlay so text reads over video */}
-            <div style={{
-              position: "absolute", inset: 0,
-              background: "linear-gradient(to top, rgba(13,13,13,0.85) 0%, transparent 50%)",
-            }} />
-            {/* clear preview button */}
-            <button
-              onClick={e => { e.stopPropagation(); onClearPreview(preset.id); }}
-              title="Remove preview"
+            <video ref={videoRef} src={previewUrl} loop muted playsInline
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(13,13,13,0.8) 0%, transparent 55%)" }} />
+            <button onClick={e => { e.stopPropagation(); onClearPreview(preset.id); }}
               style={{
                 position: "absolute", top: 8, right: 8, zIndex: 10,
-                background: "rgba(0,0,0,0.6)", border: "0.5px solid rgba(255,255,255,0.15)",
+                background: "rgba(0,0,0,0.65)", border: "0.5px solid rgba(255,255,255,0.15)",
                 borderRadius: 6, padding: "3px 8px", cursor: "pointer",
                 color: "rgba(255,255,255,0.5)", fontSize: 10,
               }}>✕</button>
+            {hovered && (
+              <div style={{
+                position: "absolute", bottom: 8, left: 8,
+                background: "rgba(0,0,0,0.65)", borderRadius: 6, padding: "3px 8px",
+                fontSize: 10, color: "rgba(255,255,255,0.8)", display: "flex", alignItems: "center", gap: 4,
+              }}><span style={{ color: "#4ade80" }}>▶</span> PREVIEW</div>
+            )}
           </>
         ) : (
-          /* Animated gradient placeholder */
           <div style={{
             width: "100%", height: "100%",
-            background: `linear-gradient(135deg, #0d0d0d 0%, ${preset.color}22 40%, ${preset.color}44 60%, #0d0d0d 100%)`,
-            backgroundSize: "300% 300%",
-            animation: "gradientShift 4s ease infinite",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            flexDirection: "column", gap: 8,
+            background: `linear-gradient(135deg, #0d0d0d 0%, ${preset.color}20 40%, ${preset.color}40 60%, #0d0d0d 100%)`,
+            backgroundSize: "300% 300%", animation: "gradientShift 4s ease infinite",
+            display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 8,
           }}>
-            <span style={{ fontSize: 36, filter: "drop-shadow(0 0 12px " + preset.color + ")" }}>
-              {preset.emoji}
-            </span>
-            <span style={{
-              fontSize: 10, color: "rgba(255,255,255,0.25)", letterSpacing: 1,
-              display: "flex", alignItems: "center", gap: 4,
-            }}>
-              <span style={{
-                width: 6, height: 6, borderRadius: "50%",
-                background: preset.color, display: "inline-block",
-                boxShadow: `0 0 6px ${preset.color}`,
-                animation: "pulse 2s ease infinite",
-              }} />
+            <span style={{ fontSize: 38, filter: `drop-shadow(0 0 14px ${preset.color})` }}>{preset.emoji}</span>
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", letterSpacing: 1, display: "flex", alignItems: "center", gap: 4 }}>
+              <span style={{ width: 5, height: 5, borderRadius: "50%", background: preset.color, display: "inline-block", animation: "pulse 2s ease infinite" }} />
               GENERATE TO PREVIEW
             </span>
           </div>
         )}
 
-        {/* Play indicator overlay (only when video exists and hovering) */}
-        {previewUrl && (hovered || isSelected) && (
-          <div style={{
-            position: "absolute", bottom: 8, left: 8,
-            background: "rgba(0,0,0,0.65)", borderRadius: 6, padding: "3px 8px",
-            fontSize: 10, color: "rgba(255,255,255,0.8)",
-            display: "flex", alignItems: "center", gap: 4,
-          }}>
-            <span style={{ color: "#4ade80" }}>▶</span> LIVE PREVIEW
-          </div>
-        )}
-
-        {/* Category badge top-left */}
+        {/* Category badge */}
         <div style={{
           position: "absolute", top: 8, left: 8,
-          background: `${preset.color}dd`, borderRadius: 5,
-          padding: "2px 8px", fontSize: 9, fontWeight: 700,
-          color: "#fff", letterSpacing: 0.5,
-        }}>
-          {preset.category.replace(/^[^ ]+ /, "").toUpperCase()}
-        </div>
+          background: `${preset.color}cc`, borderRadius: 5,
+          padding: "2px 8px", fontSize: 9, fontWeight: 700, color: "#fff", letterSpacing: 0.5,
+        }}>{preset.category.replace(/^[^ ]+ /, "").toUpperCase()}</div>
+
+        {/* Progress bar on top of preview while generating */}
+        {isGenerating && (
+          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 3, background: "rgba(0,0,0,0.4)" }}>
+            <div style={{
+              height: "100%", width: `${progress}%`,
+              background: `linear-gradient(90deg, ${preset.color}, #fff)`,
+              transition: "width 0.6s ease",
+            }} />
+          </div>
+        )}
       </div>
 
       {/* ── Card body ── */}
-      <div style={{ padding: "14px 16px 14px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-            <span style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 14, color: "#fff" }}>{preset.name}</span>
-          </div>
-          <span style={{
-            fontSize: 10, color: "rgba(255,255,255,0.3)",
-            background: "rgba(255,255,255,0.05)", padding: "2px 7px", borderRadius: 4,
-          }}>{preset.aspect} · {preset.duration}s</span>
+      <div style={{ padding: "13px 15px 14px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+          <span style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 14, color: "#fff" }}>{preset.name}</span>
+          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.28)", background: "rgba(255,255,255,0.05)", padding: "2px 6px", borderRadius: 4 }}>
+            {preset.duration}s
+          </span>
         </div>
 
-        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 10px", lineHeight: 1.5 }}>
-          {preset.desc}
-        </p>
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.42)", margin: "0 0 10px", lineHeight: 1.5 }}>{preset.desc}</p>
 
-        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 12 }}>
+        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 11 }}>
           {preset.tags.map(t => (
             <span key={t} style={{
-              fontSize: 10, padding: "2px 6px",
-              background: "rgba(255,255,255,0.05)", borderRadius: 4,
-              color: "rgba(255,255,255,0.35)", border: "0.5px solid rgba(255,255,255,0.07)",
+              fontSize: 10, padding: "2px 6px", background: "rgba(255,255,255,0.05)",
+              borderRadius: 4, color: "rgba(255,255,255,0.32)", border: "0.5px solid rgba(255,255,255,0.07)",
             }}>{t}</span>
           ))}
           <span style={{
             fontSize: 10, padding: "2px 7px", marginLeft: "auto",
             background: `${preset.color}18`, borderRadius: 4,
             color: preset.color, border: `0.5px solid ${preset.color}35`,
-          }}>{MODELS.find(m => m.id === preset.model)?.name}</span>
+          }}>Kling 1.6</span>
         </div>
 
-        {/* ── Expanded subject input ── */}
-        {isSelected ? (
-          <div onClick={e => e.stopPropagation()}>
-            <div style={{ height: 1, background: "rgba(255,255,255,0.07)", marginBottom: 12 }} />
-            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "0 0 8px" }}>
-              Your subject — <span style={{ color: "rgba(255,255,255,0.22)" }}>{preset.subjectHint}</span>
-            </p>
-            <input
-              autoFocus
-              value={subject}
-              onChange={e => setSubject(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleUse()}
-              placeholder={preset.subjectHint}
-              style={{
-                width: "100%", background: "#1a1a1a",
-                border: `0.5px solid ${preset.color}55`,
-                borderRadius: 8, padding: "10px 12px",
-                color: "#fff", fontSize: 13, outline: "none",
-                boxSizing: "border-box", marginBottom: 10,
-              }}
-            />
-            <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={() => onSelect(null)} style={{
-                flex: 1, background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.1)",
-                borderRadius: 8, padding: "10px 0", cursor: "pointer",
-                color: "rgba(255,255,255,0.4)", fontSize: 13,
-              }}>Cancel</button>
-              <button
-                onClick={handleUse}
-                disabled={!subject.trim()}
-                style={{
-                  flex: 3, background: subject.trim() ? preset.color : "rgba(255,255,255,0.05)",
-                  border: "none", borderRadius: 8, padding: "10px 0",
-                  cursor: subject.trim() ? "pointer" : "default",
-                  color: subject.trim() ? "#fff" : "rgba(255,255,255,0.25)",
-                  fontWeight: 700, fontSize: 13, transition: "all 0.15s",
-                }}
-              >
-                {subject.trim() ? "Generate with Preset →" : "Type your subject first"}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={e => { e.stopPropagation(); onSelect(preset); }}
-            style={{
-              width: "100%", background: hovered ? `${preset.color}22` : "rgba(255,255,255,0.04)",
-              border: `0.5px solid ${hovered ? preset.color + "55" : "rgba(255,255,255,0.08)"}`,
-              borderRadius: 8, padding: "9px 0", cursor: "pointer",
-              color: hovered ? preset.color : "rgba(255,255,255,0.4)",
-              fontSize: 12, fontWeight: 600, transition: "all 0.15s",
-            }}
-          >
-            Use Preset →
-          </button>
-        )}
+        <button
+          onClick={() => onGenerate(preset)}
+          disabled={disabled}
+          style={{
+            width: "100%",
+            background: isGenerating ? `${preset.color}30` : hasImage ? preset.color : "rgba(255,255,255,0.06)",
+            border: `0.5px solid ${isGenerating ? preset.color : hasImage ? "transparent" : "rgba(255,255,255,0.1)"}`,
+            borderRadius: 8, padding: "10px 0", cursor: disabled ? "not-allowed" : "pointer",
+            color: hasImage || isGenerating ? "#fff" : "rgba(255,255,255,0.35)",
+            fontWeight: 600, fontSize: 13, transition: "all 0.15s",
+          }}
+        >
+          {isGenerating
+            ? `Generating ${Math.round(progress)}%...`
+            : hasImage
+              ? "Generate with my photo →"
+              : "⬆ Upload photo first"}
+        </button>
       </div>
     </div>
   );
 }
 
-// ─── Presets Section ───────────────────────────────────────────────────────────
-function PresetsSection({ onUsePreset, previewVideos, onClearPreview }) {
+// ─── Presets Section (self-contained image-to-video flow) ───────────────────────
+function PresetsSection({ user, onShowAuth, previewVideos, onSavePreview, onClearPreview }) {
   const [activeCategory, setActiveCategory] = useState("All");
-  const [selected, setSelected] = useState(null);
 
-  const filtered = activeCategory === "All"
-    ? PRESETS
-    : PRESETS.filter(p => p.category === activeCategory);
+  // Image upload state
+  const [imagePreviewUrl, setImagePreviewUrl] = useState(null);  // local blob URL for display
+  const [imagePublicUrl, setImagePublicUrl] = useState(null);    // fal.ai CDN URL for generation
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const fileRef = useRef();
 
-  const handleUse = ({ subject, preset }) => {
-    onUsePreset({
-      prompt: preset.prompt(subject),
-      model: preset.model,
-      aspect: preset.aspect,
-      duration: preset.duration,
-      presetId: preset.id,
-    });
-    setSelected(null);
+  // Generation state
+  const [generatingId, setGeneratingId] = useState(null);
+  const [progress, setProgress] = useState(0);
+  const [result, setResult] = useState(null);       // video URL or "error"
+  const [resultPresetId, setResultPresetId] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
+  const progressRef = useRef();
+
+  const filtered = activeCategory === "All" ? PRESETS : PRESETS.filter(p => p.category === activeCategory);
+
+  // ── Resize image in browser, then upload to fal.ai via backend ──
+  const handleImageSelect = async (file) => {
+    if (!file) return;
+    setUploadError("");
+    setImagePublicUrl(null);
+
+    // Show local preview immediately
+    const localUrl = URL.createObjectURL(file);
+    setImagePreviewUrl(localUrl);
+    setUploading(true);
+
+    try {
+      // Resize to max 1024px using canvas
+      const img = new Image();
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = localUrl; });
+      const MAX = 1024;
+      let w = img.width, h = img.height;
+      if (w > h && w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+      else if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+
+      // Convert to base64 JPEG
+      const base64 = await new Promise(res => canvas.toBlob(blob => {
+        const reader = new FileReader();
+        reader.onload = e => res(e.target.result.split(",")[1]);
+        reader.readAsDataURL(blob);
+      }, "image/jpeg", 0.85));
+
+      // Upload to fal.ai via backend
+      const resp = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageBase64: base64, mimeType: "image/jpeg" }),
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.url) throw new Error(data.error || "Upload failed");
+      setImagePublicUrl(data.url);
+    } catch (e) {
+      setUploadError("Upload failed: " + e.message);
+      setImagePreviewUrl(null);
+    }
+    setUploading(false);
+  };
+
+  // ── Generate video from preset + uploaded image ──
+  const handleGenerate = async (preset) => {
+    if (!user) { onShowAuth(); return; }
+    if (!imagePublicUrl) { fileRef.current?.click(); return; }
+
+    setGeneratingId(preset.id);
+    setResultPresetId(preset.id);
+    setProgress(0);
+    setResult(null);
+    setErrorMsg("");
+
+    progressRef.current = setInterval(() => {
+      setProgress(p => { if (p >= 90) { clearInterval(progressRef.current); return 90; } return p + Math.random() * 3.5; });
+    }, 600);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const payload = { image_url: imagePublicUrl, prompt: preset.motion, duration: preset.duration };
+
+      const submitRes = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${session?.access_token}` },
+        body: JSON.stringify({ endpoint: preset.endpoint, payload }),
+      });
+      const submitData = await submitRes.json();
+      const { status_url: statusUrl, response_url: responseUrl } = submitData;
+
+      if (!statusUrl) {
+        setErrorMsg(submitData?.detail || submitData?.error || "Submit failed — no status URL");
+        setResult("error"); return;
+      }
+
+      let done = false, attempts = 0;
+      while (!done && attempts < 60) {
+        await new Promise(r => setTimeout(r, 4000));
+        attempts++;
+        const statusData = await fetch("/api/status", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ statusUrl }),
+        }).then(r => r.json());
+
+        if (statusData.status === "COMPLETED") {
+          const resultData = await fetch("/api/result", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ responseUrl }),
+          }).then(r => r.json());
+
+          const videoUrl = resultData.video?.url || resultData.video_url || resultData.output?.video?.url || null;
+          setResult(videoUrl || "error");
+          if (!videoUrl) { setErrorMsg("No video URL in response"); }
+
+          // Save to history + deduct credits
+          if (videoUrl && user) {
+            await supabase.from("generations").insert({
+              user_id: user.id, prompt: preset.motion,
+              model_id: preset.id, model_name: preset.name,
+              video_url: videoUrl, duration: preset.duration, credits_used: preset.duration,
+            });
+            await supabase.rpc("deduct_credits", { user_id: user.id, amount: preset.duration });
+          }
+          done = true;
+        } else if (statusData.status === "FAILED") {
+          setErrorMsg(statusData.error || "Generation failed on fal.ai");
+          setResult("error"); done = true;
+        }
+      }
+      if (!done) { setErrorMsg("Timed out after 4 minutes"); setResult("error"); }
+    } catch (e) {
+      setErrorMsg(e.message || "Network error");
+      setResult("error");
+    } finally {
+      clearInterval(progressRef.current);
+      setProgress(100);
+      setGeneratingId(null);
+    }
   };
 
   return (
     <div>
-      {/* Header */}
+      {/* ── Header ── */}
       <div style={{ marginBottom: 28 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
           <span style={{
@@ -838,49 +802,143 @@ function PresetsSection({ onUsePreset, previewVideos, onClearPreview }) {
             background: "#e11d4820", color: "#fb7185", borderRadius: 4, border: "0.5px solid #e11d4840",
           }}>VIRAL PRESETS</span>
           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>
-            {PRESETS.length} effects · {Object.keys(previewVideos).length > 0 ? `${Object.keys(previewVideos).length} with live previews` : "generate a video to unlock previews"}
+            {PRESETS.length} effects · image-to-video
           </span>
         </div>
         <h2 style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 28, margin: "10px 0 4px", letterSpacing: -0.5 }}>
-          Go viral in seconds.
+          Put yourself in the scene.
         </h2>
         <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", margin: 0 }}>
-          Pick a preset → enter your subject → generate. Pin your results as live previews.
+          Upload your photo once. Pick any preset. Watch yourself go viral.
         </p>
       </div>
 
-      {/* Category filter */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 24, flexWrap: "wrap" }}>
+      {/* ── Photo upload ── */}
+      <div style={{ marginBottom: 28 }}>
+        <div
+          onClick={() => !uploading && fileRef.current?.click()}
+          style={{
+            border: `1.5px dashed ${imagePublicUrl ? "#4ade8060" : uploading ? "#7c3aed80" : "rgba(255,255,255,0.12)"}`,
+            borderRadius: 16, padding: imagePreviewUrl ? 0 : "28px 20px",
+            cursor: uploading ? "wait" : "pointer", textAlign: "center",
+            background: imagePreviewUrl ? "transparent" : "rgba(255,255,255,0.02)",
+            transition: "all 0.2s", overflow: "hidden",
+            display: "flex", alignItems: "center",
+            maxWidth: 480,
+          }}
+          onMouseEnter={e => { if (!uploading) e.currentTarget.style.borderColor = "#7c3aed80"; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = imagePublicUrl ? "#4ade8060" : "rgba(255,255,255,0.12)"; }}
+        >
+          <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }}
+            onChange={e => handleImageSelect(e.target.files[0])} />
+
+          {imagePreviewUrl ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 0, width: "100%" }}>
+              <img src={imagePreviewUrl} alt="Your photo"
+                style={{ width: 90, height: 90, objectFit: "cover", display: "block", flexShrink: 0 }} />
+              <div style={{ padding: "0 18px", flex: 1, textAlign: "left" }}>
+                {uploading ? (
+                  <>
+                    <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 600, color: "#a78bfa" }}>⏳ Uploading...</p>
+                    <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.35)" }}>Processing your photo</p>
+                  </>
+                ) : imagePublicUrl ? (
+                  <>
+                    <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 600, color: "#4ade80" }}>✓ Photo ready</p>
+                    <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.35)" }}>Click any preset below to generate</p>
+                  </>
+                ) : (
+                  <>
+                    <p style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 600, color: "#fda4af" }}>⚠ Upload failed</p>
+                    <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.35)" }}>{uploadError}</p>
+                  </>
+                )}
+                <button onClick={e => { e.stopPropagation(); setImagePreviewUrl(null); setImagePublicUrl(null); fileRef.current?.click(); }}
+                  style={{
+                    marginTop: 8, background: "transparent", border: "0.5px solid rgba(255,255,255,0.15)",
+                    borderRadius: 6, padding: "4px 10px", cursor: "pointer",
+                    color: "rgba(255,255,255,0.4)", fontSize: 11,
+                  }}>Change photo</button>
+              </div>
+            </div>
+          ) : (
+            <div style={{ width: "100%", padding: "4px 0" }}>
+              <div style={{ fontSize: 32, marginBottom: 8 }}>🤳</div>
+              <p style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 600, color: "#fff" }}>Upload your photo</p>
+              <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
+                JPG, PNG, WEBP · Best with a clear face or full body shot
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Category filter ── */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
         {PRESET_CATEGORIES.map(cat => (
-          <button key={cat} onClick={() => { setActiveCategory(cat); setSelected(null); }} style={{
+          <button key={cat} onClick={() => setActiveCategory(cat)} style={{
             background: activeCategory === cat ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
             border: `0.5px solid ${activeCategory === cat ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.08)"}`,
-            borderRadius: 8, padding: "7px 14px", cursor: "pointer",
+            borderRadius: 8, padding: "6px 13px", cursor: "pointer",
             color: activeCategory === cat ? "#fff" : "rgba(255,255,255,0.45)",
-            fontSize: 12, fontWeight: activeCategory === cat ? 600 : 400,
-            transition: "all 0.15s",
+            fontSize: 12, fontWeight: activeCategory === cat ? 600 : 400, transition: "all 0.15s",
           }}>{cat}</button>
         ))}
       </div>
 
-      {/* Preset Grid */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-        gap: 14,
-      }}>
+      {/* ── Preset Grid ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(270px, 1fr))", gap: 14 }}>
         {filtered.map(preset => (
           <PresetCard
             key={preset.id}
             preset={preset}
-            isSelected={selected?.id === preset.id}
-            onSelect={p => setSelected(p)}
-            onUse={handleUse}
             previewUrl={previewVideos[preset.id] || null}
             onClearPreview={onClearPreview}
+            onGenerate={handleGenerate}
+            isGenerating={generatingId === preset.id}
+            progress={progress}
+            disabled={!!generatingId}
+            hasImage={!!imagePublicUrl}
           />
         ))}
       </div>
+
+      {/* ── Result area ── */}
+      {result && result !== "error" && (
+        <div style={{
+          marginTop: 32, background: "#0f0f0f",
+          border: "0.5px solid rgba(74,222,128,0.3)", borderRadius: 16, padding: 20,
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
+            <span style={{ fontSize: 13, color: "#4ade80", fontWeight: 700 }}>✓ Video generated!</span>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              {resultPresetId && (
+                previewVideos[resultPresetId]
+                  ? <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>📌 Pinned as preview</span>
+                  : <button onClick={() => onSavePreview(resultPresetId, result)} style={{
+                      fontSize: 12, color: "#f59e0b", background: "rgba(245,158,11,0.12)",
+                      padding: "5px 12px", borderRadius: 6, border: "0.5px solid rgba(245,158,11,0.3)",
+                      cursor: "pointer", fontWeight: 600,
+                    }}>📌 Pin as preview loop</button>
+              )}
+              <a href={result} download target="_blank" rel="noreferrer" style={{
+                fontSize: 12, color: "#7c3aed", textDecoration: "none",
+                background: "rgba(124,58,237,0.15)", padding: "5px 12px", borderRadius: 6,
+              }}>⬇ Download</a>
+            </div>
+          </div>
+          <video controls style={{ width: "100%", borderRadius: 10, maxHeight: 480 }} src={result} />
+        </div>
+      )}
+      {result === "error" && (
+        <div style={{
+          marginTop: 24, background: "rgba(225,29,72,0.1)", border: "0.5px solid rgba(225,29,72,0.3)",
+          borderRadius: 12, padding: "14px 18px", fontSize: 13, color: "#fda4af",
+        }}>
+          <strong style={{ display: "block", marginBottom: 4 }}>⚠ Generation failed</strong>
+          <span style={{ fontFamily: "'DM Mono'", fontSize: 11, opacity: 0.85 }}>{errorMsg || "Unknown error"}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -1548,21 +1606,11 @@ print(result["video"]["url"])`;
 
         {navSection === "presets" && (
           <PresetsSection
+            user={user}
+            onShowAuth={() => setShowAuth(true)}
             previewVideos={previewVideos}
+            onSavePreview={savePreviewVideo}
             onClearPreview={clearPreviewVideo}
-            onUsePreset={({ prompt: p, model: m, aspect: a, duration: d, presetId }) => {
-              const modelObj = MODELS.find(x => x.id === m);
-              setSelectedModel(m);
-              setPrompt(p);
-              setAspect(modelObj?.aspects.includes(a) ? a : modelObj?.aspects[0] ?? a);
-              const dur = Number(d);
-              setDuration(modelObj?.durations.includes(dur) ? dur : modelObj?.durations[0] ?? dur);
-              if (modelObj?.hasResolution && modelObj.res.length) setResolution(modelObj.res[0]);
-              setLastPresetId(presetId || null);
-              setResult(null);
-              setNavSection("studio");
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
           />
         )}
 
