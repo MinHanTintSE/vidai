@@ -606,26 +606,226 @@ function HistorySection({ user }) {
   );
 }
 
+// ─── Preset Preview Card ───────────────────────────────────────────────────────
+function PresetCard({ preset, isSelected, onSelect, onUse, previewUrl, onClearPreview }) {
+  const [hovered, setHovered] = useState(false);
+  const [subject, setSubject] = useState("");
+  const videoRef = useRef();
+
+  // Play/pause video on hover
+  useEffect(() => {
+    if (!videoRef.current) return;
+    if (hovered || isSelected) videoRef.current.play().catch(() => {});
+    else videoRef.current.pause();
+  }, [hovered, isSelected]);
+
+  const handleUse = () => {
+    if (!subject.trim()) return;
+    onUse({ subject, preset });
+    setSubject("");
+  };
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={() => { if (!isSelected) { onSelect(preset); } }}
+      style={{
+        background: "#0d0d0d",
+        border: `1.5px solid ${isSelected ? preset.color : hovered ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.07)"}`,
+        borderRadius: 14, overflow: "hidden",
+        cursor: isSelected ? "default" : "pointer",
+        transition: "border-color 0.2s, transform 0.2s",
+        transform: hovered && !isSelected ? "translateY(-2px)" : "none",
+      }}
+    >
+      {/* ── Preview area (video or animated gradient) ── */}
+      <div style={{ position: "relative", height: 160, overflow: "hidden", background: "#0a0a0a" }}>
+        {previewUrl ? (
+          <>
+            <video
+              ref={videoRef}
+              src={previewUrl}
+              loop muted playsInline
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            />
+            {/* gradient overlay so text reads over video */}
+            <div style={{
+              position: "absolute", inset: 0,
+              background: "linear-gradient(to top, rgba(13,13,13,0.85) 0%, transparent 50%)",
+            }} />
+            {/* clear preview button */}
+            <button
+              onClick={e => { e.stopPropagation(); onClearPreview(preset.id); }}
+              title="Remove preview"
+              style={{
+                position: "absolute", top: 8, right: 8, zIndex: 10,
+                background: "rgba(0,0,0,0.6)", border: "0.5px solid rgba(255,255,255,0.15)",
+                borderRadius: 6, padding: "3px 8px", cursor: "pointer",
+                color: "rgba(255,255,255,0.5)", fontSize: 10,
+              }}>✕</button>
+          </>
+        ) : (
+          /* Animated gradient placeholder */
+          <div style={{
+            width: "100%", height: "100%",
+            background: `linear-gradient(135deg, #0d0d0d 0%, ${preset.color}22 40%, ${preset.color}44 60%, #0d0d0d 100%)`,
+            backgroundSize: "300% 300%",
+            animation: "gradientShift 4s ease infinite",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            flexDirection: "column", gap: 8,
+          }}>
+            <span style={{ fontSize: 36, filter: "drop-shadow(0 0 12px " + preset.color + ")" }}>
+              {preset.emoji}
+            </span>
+            <span style={{
+              fontSize: 10, color: "rgba(255,255,255,0.25)", letterSpacing: 1,
+              display: "flex", alignItems: "center", gap: 4,
+            }}>
+              <span style={{
+                width: 6, height: 6, borderRadius: "50%",
+                background: preset.color, display: "inline-block",
+                boxShadow: `0 0 6px ${preset.color}`,
+                animation: "pulse 2s ease infinite",
+              }} />
+              GENERATE TO PREVIEW
+            </span>
+          </div>
+        )}
+
+        {/* Play indicator overlay (only when video exists and hovering) */}
+        {previewUrl && (hovered || isSelected) && (
+          <div style={{
+            position: "absolute", bottom: 8, left: 8,
+            background: "rgba(0,0,0,0.65)", borderRadius: 6, padding: "3px 8px",
+            fontSize: 10, color: "rgba(255,255,255,0.8)",
+            display: "flex", alignItems: "center", gap: 4,
+          }}>
+            <span style={{ color: "#4ade80" }}>▶</span> LIVE PREVIEW
+          </div>
+        )}
+
+        {/* Category badge top-left */}
+        <div style={{
+          position: "absolute", top: 8, left: 8,
+          background: `${preset.color}dd`, borderRadius: 5,
+          padding: "2px 8px", fontSize: 9, fontWeight: 700,
+          color: "#fff", letterSpacing: 0.5,
+        }}>
+          {preset.category.replace(/^[^ ]+ /, "").toUpperCase()}
+        </div>
+      </div>
+
+      {/* ── Card body ── */}
+      <div style={{ padding: "14px 16px 14px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+            <span style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 14, color: "#fff" }}>{preset.name}</span>
+          </div>
+          <span style={{
+            fontSize: 10, color: "rgba(255,255,255,0.3)",
+            background: "rgba(255,255,255,0.05)", padding: "2px 7px", borderRadius: 4,
+          }}>{preset.aspect} · {preset.duration}s</span>
+        </div>
+
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "0 0 10px", lineHeight: 1.5 }}>
+          {preset.desc}
+        </p>
+
+        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 12 }}>
+          {preset.tags.map(t => (
+            <span key={t} style={{
+              fontSize: 10, padding: "2px 6px",
+              background: "rgba(255,255,255,0.05)", borderRadius: 4,
+              color: "rgba(255,255,255,0.35)", border: "0.5px solid rgba(255,255,255,0.07)",
+            }}>{t}</span>
+          ))}
+          <span style={{
+            fontSize: 10, padding: "2px 7px", marginLeft: "auto",
+            background: `${preset.color}18`, borderRadius: 4,
+            color: preset.color, border: `0.5px solid ${preset.color}35`,
+          }}>{MODELS.find(m => m.id === preset.model)?.name}</span>
+        </div>
+
+        {/* ── Expanded subject input ── */}
+        {isSelected ? (
+          <div onClick={e => e.stopPropagation()}>
+            <div style={{ height: 1, background: "rgba(255,255,255,0.07)", marginBottom: 12 }} />
+            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "0 0 8px" }}>
+              Your subject — <span style={{ color: "rgba(255,255,255,0.22)" }}>{preset.subjectHint}</span>
+            </p>
+            <input
+              autoFocus
+              value={subject}
+              onChange={e => setSubject(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleUse()}
+              placeholder={preset.subjectHint}
+              style={{
+                width: "100%", background: "#1a1a1a",
+                border: `0.5px solid ${preset.color}55`,
+                borderRadius: 8, padding: "10px 12px",
+                color: "#fff", fontSize: 13, outline: "none",
+                boxSizing: "border-box", marginBottom: 10,
+              }}
+            />
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => onSelect(null)} style={{
+                flex: 1, background: "rgba(255,255,255,0.05)", border: "0.5px solid rgba(255,255,255,0.1)",
+                borderRadius: 8, padding: "10px 0", cursor: "pointer",
+                color: "rgba(255,255,255,0.4)", fontSize: 13,
+              }}>Cancel</button>
+              <button
+                onClick={handleUse}
+                disabled={!subject.trim()}
+                style={{
+                  flex: 3, background: subject.trim() ? preset.color : "rgba(255,255,255,0.05)",
+                  border: "none", borderRadius: 8, padding: "10px 0",
+                  cursor: subject.trim() ? "pointer" : "default",
+                  color: subject.trim() ? "#fff" : "rgba(255,255,255,0.25)",
+                  fontWeight: 700, fontSize: 13, transition: "all 0.15s",
+                }}
+              >
+                {subject.trim() ? "Generate with Preset →" : "Type your subject first"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={e => { e.stopPropagation(); onSelect(preset); }}
+            style={{
+              width: "100%", background: hovered ? `${preset.color}22` : "rgba(255,255,255,0.04)",
+              border: `0.5px solid ${hovered ? preset.color + "55" : "rgba(255,255,255,0.08)"}`,
+              borderRadius: 8, padding: "9px 0", cursor: "pointer",
+              color: hovered ? preset.color : "rgba(255,255,255,0.4)",
+              fontSize: 12, fontWeight: 600, transition: "all 0.15s",
+            }}
+          >
+            Use Preset →
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Presets Section ───────────────────────────────────────────────────────────
-function PresetsSection({ onUsePreset }) {
+function PresetsSection({ onUsePreset, previewVideos, onClearPreview }) {
   const [activeCategory, setActiveCategory] = useState("All");
   const [selected, setSelected] = useState(null);
-  const [subject, setSubject] = useState("");
 
   const filtered = activeCategory === "All"
     ? PRESETS
     : PRESETS.filter(p => p.category === activeCategory);
 
-  const handleUse = () => {
-    if (!selected || !subject.trim()) return;
+  const handleUse = ({ subject, preset }) => {
     onUsePreset({
-      prompt: selected.prompt(subject.trim()),
-      model: selected.model,
-      aspect: selected.aspect,
-      duration: selected.duration,
+      prompt: preset.prompt(subject),
+      model: preset.model,
+      aspect: preset.aspect,
+      duration: preset.duration,
+      presetId: preset.id,
     });
     setSelected(null);
-    setSubject("");
   };
 
   return (
@@ -637,22 +837,22 @@ function PresetsSection({ onUsePreset }) {
             fontSize: 10, fontWeight: 700, letterSpacing: 2, padding: "3px 10px",
             background: "#e11d4820", color: "#fb7185", borderRadius: 4, border: "0.5px solid #e11d4840",
           }}>VIRAL PRESETS</span>
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>{PRESETS.length} effects · pick one, type your subject, generate</span>
+          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>
+            {PRESETS.length} effects · {Object.keys(previewVideos).length > 0 ? `${Object.keys(previewVideos).length} with live previews` : "generate a video to unlock previews"}
+          </span>
         </div>
         <h2 style={{ fontFamily: "'Space Grotesk'", fontWeight: 700, fontSize: 28, margin: "10px 0 4px", letterSpacing: -0.5 }}>
           Go viral in seconds.
         </h2>
         <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", margin: 0 }}>
-          Pre-built cinematic prompts. Add your subject and generate instantly.
+          Pick a preset → enter your subject → generate. Pin your results as live previews.
         </p>
       </div>
 
       {/* Category filter */}
-      <div style={{
-        display: "flex", gap: 6, marginBottom: 24, flexWrap: "wrap",
-      }}>
+      <div style={{ display: "flex", gap: 6, marginBottom: 24, flexWrap: "wrap" }}>
         {PRESET_CATEGORIES.map(cat => (
-          <button key={cat} onClick={() => setActiveCategory(cat)} style={{
+          <button key={cat} onClick={() => { setActiveCategory(cat); setSelected(null); }} style={{
             background: activeCategory === cat ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.04)",
             border: `0.5px solid ${activeCategory === cat ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.08)"}`,
             borderRadius: 8, padding: "7px 14px", cursor: "pointer",
@@ -666,116 +866,20 @@ function PresetsSection({ onUsePreset }) {
       {/* Preset Grid */}
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-        gap: 12,
+        gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+        gap: 14,
       }}>
-        {filtered.map(preset => {
-          const isSelected = selected?.id === preset.id;
-          return (
-            <div key={preset.id}
-              onClick={() => { setSelected(isSelected ? null : preset); setSubject(""); }}
-              style={{
-                background: isSelected ? `${preset.color}12` : "#0f0f0f",
-                border: `1.5px solid ${isSelected ? preset.color : "rgba(255,255,255,0.07)"}`,
-                borderRadius: 14, padding: "18px 18px 16px",
-                cursor: "pointer", transition: "all 0.2s",
-                position: "relative", overflow: "hidden",
-              }}
-              onMouseEnter={e => { if (!isSelected) e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)"; }}
-              onMouseLeave={e => { if (!isSelected) e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)"; }}
-            >
-              {/* Color accent top bar */}
-              <div style={{
-                position: "absolute", top: 0, left: 0, right: 0, height: 3,
-                background: `linear-gradient(90deg, ${preset.color}, ${preset.color}44)`,
-              }} />
-
-              {/* Header row */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 22 }}>{preset.emoji}</span>
-                  <span style={{ fontFamily: "'Space Grotesk'", fontWeight: 600, fontSize: 14, color: "#fff" }}>{preset.name}</span>
-                </div>
-                <span style={{
-                  fontSize: 9, fontWeight: 700, letterSpacing: 0.5,
-                  padding: "2px 7px", borderRadius: 4,
-                  background: `${preset.color}25`, color: preset.color,
-                  whiteSpace: "nowrap",
-                }}>{preset.category.replace(/^[^ ]+ /, "")}</span>
-              </div>
-
-              {/* Description */}
-              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: "0 0 10px", lineHeight: 1.5 }}>
-                {preset.desc}
-              </p>
-
-              {/* Tags + model */}
-              <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 10 }}>
-                {preset.tags.map(t => (
-                  <span key={t} style={{
-                    fontSize: 10, padding: "2px 7px",
-                    background: "rgba(255,255,255,0.05)", borderRadius: 4,
-                    color: "rgba(255,255,255,0.4)", border: "0.5px solid rgba(255,255,255,0.08)",
-                  }}>{t}</span>
-                ))}
-                <span style={{
-                  fontSize: 10, padding: "2px 7px",
-                  background: `${preset.color}15`, borderRadius: 4,
-                  color: preset.color, border: `0.5px solid ${preset.color}30`,
-                  marginLeft: "auto",
-                }}>{MODELS.find(m => m.id === preset.model)?.name}</span>
-              </div>
-
-              {/* Expanded: subject input */}
-              {isSelected && (
-                <div onClick={e => e.stopPropagation()} style={{ marginTop: 12 }}>
-                  <div style={{ height: "0.5px", background: "rgba(255,255,255,0.08)", marginBottom: 12 }} />
-                  <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "0 0 8px" }}>
-                    What is your subject? <span style={{ color: "rgba(255,255,255,0.25)" }}>{preset.subjectHint}</span>
-                  </p>
-                  <input
-                    autoFocus
-                    value={subject}
-                    onChange={e => setSubject(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && handleUse()}
-                    placeholder={preset.subjectHint}
-                    style={{
-                      width: "100%", background: "#1a1a1a",
-                      border: `0.5px solid ${preset.color}50`,
-                      borderRadius: 8, padding: "10px 12px",
-                      color: "#fff", fontSize: 13, outline: "none",
-                      boxSizing: "border-box", marginBottom: 10,
-                    }}
-                  />
-                  <button
-                    onClick={handleUse}
-                    disabled={!subject.trim()}
-                    style={{
-                      width: "100%", background: subject.trim() ? preset.color : "rgba(255,255,255,0.06)",
-                      border: "none", borderRadius: 8, padding: "10px 0",
-                      cursor: subject.trim() ? "pointer" : "default",
-                      color: subject.trim() ? "#fff" : "rgba(255,255,255,0.3)",
-                      fontWeight: 600, fontSize: 13, transition: "all 0.15s",
-                    }}
-                  >
-                    Use This Preset →
-                  </button>
-                </div>
-              )}
-
-              {/* Collapsed: hint to click */}
-              {!isSelected && (
-                <div style={{
-                  display: "flex", alignItems: "center", gap: 6,
-                  fontSize: 11, color: "rgba(255,255,255,0.25)",
-                }}>
-                  <span>{preset.aspect} · {preset.duration}s</span>
-                  <span style={{ marginLeft: "auto" }}>Click to use →</span>
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {filtered.map(preset => (
+          <PresetCard
+            key={preset.id}
+            preset={preset}
+            isSelected={selected?.id === preset.id}
+            onSelect={p => setSelected(p)}
+            onUse={handleUse}
+            previewUrl={previewVideos[preset.id] || null}
+            onClearPreview={onClearPreview}
+          />
+        ))}
       </div>
     </div>
   );
@@ -813,6 +917,26 @@ export default function App() {
   const [imageFile, setImageFile] = useState(null);
   const [enhancedPrompt, setEnhancedPrompt] = useState("");
   const [enhancing, setEnhancing] = useState(false);
+
+  // Preset preview videos — stored in localStorage, keyed by preset ID
+  const [previewVideos, setPreviewVideos] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("vidai_preset_previews") || "{}"); }
+    catch { return {}; }
+  });
+  const [lastPresetId, setLastPresetId] = useState(null); // which preset was last used
+
+  const savePreviewVideo = (presetId, videoUrl) => {
+    const updated = { ...previewVideos, [presetId]: videoUrl };
+    setPreviewVideos(updated);
+    localStorage.setItem("vidai_preset_previews", JSON.stringify(updated));
+  };
+
+  const clearPreviewVideo = (presetId) => {
+    const updated = { ...previewVideos };
+    delete updated[presetId];
+    setPreviewVideos(updated);
+    localStorage.setItem("vidai_preset_previews", JSON.stringify(updated));
+  };
   // -- API key UI hidden for live version --
   // const [keyStatus, setKeyStatus] = useState(null);
   // const testApiKey = async () => { ... };
@@ -1236,12 +1360,26 @@ print(result["video"]["url"])`;
                   background: "#0f0f0f", border: "0.5px solid rgba(74,222,128,0.3)",
                   borderRadius: 16, padding: 20, marginBottom: 20,
                 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
                     <span style={{ fontSize: 12, color: "#4ade80", fontWeight: 600 }}>✓ Video generated</span>
-                    <a href={result} download style={{
-                      fontSize: 12, color: "#7c3aed", textDecoration: "none",
-                      background: "rgba(124,58,237,0.15)", padding: "5px 12px", borderRadius: 6,
-                    }}>⬇ Download</a>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                      {lastPresetId && (
+                        previewVideos[lastPresetId]
+                          ? <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>📌 Preview saved</span>
+                          : <button
+                              onClick={() => savePreviewVideo(lastPresetId, result)}
+                              style={{
+                                fontSize: 12, color: "#f59e0b", textDecoration: "none",
+                                background: "rgba(245,158,11,0.12)", padding: "5px 12px",
+                                borderRadius: 6, border: "0.5px solid rgba(245,158,11,0.3)",
+                                cursor: "pointer", fontWeight: 600,
+                              }}>📌 Pin as preset preview</button>
+                      )}
+                      <a href={result} download style={{
+                        fontSize: 12, color: "#7c3aed", textDecoration: "none",
+                        background: "rgba(124,58,237,0.15)", padding: "5px 12px", borderRadius: 6,
+                      }}>⬇ Download</a>
+                    </div>
                   </div>
                   <video controls style={{ width: "100%", borderRadius: 10 }} src={result} />
                 </div>
@@ -1410,8 +1548,9 @@ print(result["video"]["url"])`;
 
         {navSection === "presets" && (
           <PresetsSection
-            onUsePreset={({ prompt: p, model: m, aspect: a, duration: d }) => {
-              // Snap to valid model values
+            previewVideos={previewVideos}
+            onClearPreview={clearPreviewVideo}
+            onUsePreset={({ prompt: p, model: m, aspect: a, duration: d, presetId }) => {
               const modelObj = MODELS.find(x => x.id === m);
               setSelectedModel(m);
               setPrompt(p);
@@ -1419,8 +1558,9 @@ print(result["video"]["url"])`;
               const dur = Number(d);
               setDuration(modelObj?.durations.includes(dur) ? dur : modelObj?.durations[0] ?? dur);
               if (modelObj?.hasResolution && modelObj.res.length) setResolution(modelObj.res[0]);
+              setLastPresetId(presetId || null);
+              setResult(null);
               setNavSection("studio");
-              // Small scroll to top so user sees the studio
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
           />
@@ -1450,6 +1590,15 @@ print(result["video"]["url"])`;
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(0.85); }
+        }
         textarea::placeholder { color: rgba(255,255,255,0.2); }
         select option { background: #111; color: #fff; }
       `}</style>
